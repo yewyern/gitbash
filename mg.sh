@@ -80,6 +80,16 @@ function merge_branch() {
     error_log "** 请确认提交，或使用git stash保存空间之后，再切换分支"
     return 0
   fi
+
+  # 提示是否需要合并
+  if [[ $no_prompt = 0 ]]; then
+    echo -n "是否进行合并？(y/n)"
+    read toContinue
+    if [[ "$toContinue" != "y" ]]; then
+      return 1
+    fi
+  fi
+
   # 拉取远程分支
   git fetch
   # 切换源分支
@@ -163,14 +173,6 @@ do
 
   success_log
   success_log "当前行：$line"
-
-  if [[ $no_prompt = 0 ]]; then
-    echo -n "是否进行合并？(y/n)"
-    read toContinue
-    if [[ "$toContinue" != "y" ]]; then
-      continue
-    fi
-  fi
   
   # 根据空格或tab分割字符串
   arr=($line)
