@@ -43,6 +43,16 @@ function swith_branch() {
     success_log "分支相同，无需切换"
     return 1
   fi
+
+  # 提示是否需要切换
+  if [[ $no_prompt = 0 ]]; then
+    echo -n "是否进行切换？(y/n)"
+    read toContinue
+    if [[ "$toContinue" != "y" ]]; then
+      return 1
+    fi
+  fi
+
   # 如果有内容修改
   if [ -n "$(git status --porcelain)" ]; then
     error_log "** 有内容修改未提交，无法切换分支"
@@ -71,15 +81,22 @@ function swith_branch() {
 }
 
 if [ $# -lt 1 ]; then
-  error_log "Usage: cb.sh filename [branch_index]"
+  error_log "Usage: cb.sh [-y] filename [branch_index]"
   error_log "example: cb.sh brach_list.txt"
   error_log "example: cb.sh brach_list.txt 2"
+  error_log "example: cb.sh -y brach_list.txt 2"
   error_log "brach_list.txt like this: "
   error_log "test1	dev	test master"
   error_log "test2	dev	test master"
   exit 1
 fi
 
+no_prompt=0
+if [[ "$1" == "-y" ]]; then
+  #statements
+  no_prompt=1
+  shift 1
+fi
 filename=$1
 branch_index=$2
 if [ -z "$branch_index" ]; then
@@ -87,12 +104,21 @@ if [ -z "$branch_index" ]; then
 fi
 # 取当前目录
 base_dir=`pwd`
-# 遍历文件，每次处理一行
-while read line || [[ -n $line ]]; do
+# 一次读取所有行到数组
+mapfile lines < $filename
+# 遍历数组
+for i in "${!lines[@]}";   
+do
+  line=${lines[$i]}
+  # 过滤空行和#号开头的
+  if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
+    continue
+  fi
+  # 处理换行符
   line=`echo $line | tr --delete '\n'`
   line=`echo $line | tr --delete '\r'`
-  # 跳过以"#"号开头的行，可以注释某些行，更灵活
-  if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
+  # 过滤空行
+  if [[ -z "$line" ]]; then
     continue
   fi
   success_log
@@ -113,4 +139,4 @@ while read line || [[ -n $line ]]; do
   # 切换分支
   swith_branch $target_br
   success_log "-----------------------"
-done < $filename
+done
