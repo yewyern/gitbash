@@ -33,6 +33,11 @@ function swith_branch() {
   # 查看当前分支
   curr_br=`git symbolic-ref --short -q HEAD`
   target_br=$1
+  # 分支为空，不切换
+  if [[ -z "$target_br" ]]; then
+    success_log "分支为空，不切换"
+    return 1
+  fi
   # 如果分支相同无需切换
   if [ "$curr_br" = "$target_br" ]; then
     success_log "分支相同，无需切换"
