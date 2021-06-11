@@ -46,6 +46,11 @@ while read line || [[ -n $line ]]; do
   project=${arr[0]}
   # 目标分支
   target_br=${arr[1]}
+  if [ ! -d "$base_dir/$project" ];then
+	cd $base_dir
+	success_log "当前目录：`pwd`"
+    git clone $target_br
+  fi
   # 打开文件夹
   cd $base_dir/$project
   success_log "当前目录：`pwd`"
