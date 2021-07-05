@@ -10,3 +10,14 @@ rb.sh              rebase合并分支脚本<br/>
 rbt                rebase to 分支<br/>
 taga               git打tag并推送远程<br/>
 tagd               git删除tag并推送远程<br/>
+
+## Windows配置
+
+打开cmd
+
+```bash
+cd C:\Users\69157
+del .bash_profile
+mklink /H .bash_profile C:\github\gitbash\.bash_profile
+```
+
