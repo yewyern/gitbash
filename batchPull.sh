@@ -21,7 +21,7 @@ function get_branch_type() {
   if [ `git ls-remote --heads $(git remote | head -1) "$1" | cut -d$'\t' -f2 | sed 's,refs/heads/,,' | grep ^"$1"$ | wc -l` != 0 ]; then
     echo 2
   # 判断只存在于本地，没有远程的分支
-  elif [ -z "%(git branch --list $1)" ]; then
+  elif [ -z "$(git branch --list $1)" ]; then
     echo 0
   else
     echo 1
@@ -53,15 +53,6 @@ function pull() {
   return 1
 }
 
-if [ $# -lt 1 ]; then
-  error_log "Usage: batchPull.sh [-y] filename"
-  error_log "example: batchPull.sh brach_list.txt"
-  error_log "brach_list.txt like this: "
-  error_log "test1	dev	test master"
-  error_log "test2	dev	test master"
-  exit 1
-fi
-
 no_prompt=0
 if [[ "$1" == "-y" ]]; then
   #statements
@@ -69,6 +60,18 @@ if [[ "$1" == "-y" ]]; then
   shift 1
 fi
 filename=$1
+if [[ -z "$filename" ]]; then
+  filename=temp.txt
+  echo>$filename
+  fileList=`ls`
+  for fn in $fileList
+  do
+    if test -d $fn
+     then
+        echo $fn>>$filename
+     fi
+  done
+fi
 branch_index=$2
 if [ -z "$branch_index" ]; then
   branch_index=1

@@ -21,7 +21,7 @@ function get_branch_type() {
   if [ `git ls-remote --heads $(git remote | head -1) "$1" | cut -d$'\t' -f2 | sed 's,refs/heads/,,' | grep ^"$1"$ | wc -l` != 0 ]; then
     echo 2
   # 判断只存在于本地，没有远程的分支
-  elif [ -z "%(git branch --list $1)" ]; then
+  elif [ -z "$(git branch --list $1)" ]; then
     echo 0
   else
     echo 1
