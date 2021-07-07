@@ -16,7 +16,7 @@ tagd               git删除tag并推送远程<br/>
 打开cmd
 
 ```bash
-cd C:\Users\69157
+cd %USERPROFILE%
 del .bash_profile
 mklink /H .bash_profile C:\github\gitbash\.bash_profile
 ```
