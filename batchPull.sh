@@ -44,8 +44,8 @@ function pull() {
     error_log "** 请确认提交，或使用git stash保存空间之后，再拉取分支"
     return 0
   fi
-  curr_br=`git symbolic-ref --short -q HEAD`
-  branch_type=`get_branch_type $curr_br`
+  curr_br=$(git symbolic-ref --short -q HEAD)
+  branch_type=$(get_branch_type "$curr_br")
   if [ $branch_type = 2 ]; then
     # 更新远程分支到本地
     git pull --rebase
@@ -63,12 +63,12 @@ filename=$1
 if [[ -z "$filename" ]]; then
   filename=temp.txt
   echo>$filename
-  fileList=`ls`
+  fileList=$(ls)
   for fn in $fileList
   do
-    if test -d $fn
+    if test -d "$fn"
      then
-        echo $fn>>$filename
+        echo "$fn">>$filename
      fi
   done
 fi
@@ -77,7 +77,7 @@ if [ -z "$branch_index" ]; then
   branch_index=1
 fi
 # 取当前目录
-base_dir=`pwd`
+base_dir=$(pwd)
 # 一次读取所有行到数组
 mapfile lines < $filename
 # 遍历数组
@@ -89,8 +89,8 @@ do
     continue
   fi
   # 处理换行符
-  line=`echo $line | tr --delete '\n'`
-  line=`echo $line | tr --delete '\r'`
+  line=$(echo $line | tr --delete '\n')
+  line=$(echo $line | tr --delete '\r')
   # 过滤空行
   if [[ -z "$line" ]]; then
     continue
