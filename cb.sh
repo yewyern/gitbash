@@ -16,72 +16,74 @@ function error_log() {
 # 0 - 分支不存在
 # 1 - 本地分支，无远程
 # 2 - 远程分支
-function get_branch_type() {
-  # 判断远程分支是否存在
-  if [ $(git ls-remote --heads $(git remote | head -1) "$1" | cut -d$'\t' -f2 | sed 's,refs/heads/,,' | grep ^"$1"$ | wc -l) != 0 ]; then
-    echo 2
-  # 判断只存在于本地，没有远程的分支
-  elif [ -z "$(git branch --list $1)" ]; then
-    echo 0
-  else
-    echo 1
-  fi
-}
-
-
-function swith_branch() {
-  # 查看当前分支
-  curr_br=`git symbolic-ref --short -q HEAD`
-  target_br=$1
-  # 分支为空，不切换
-  if [[ -z "$target_br" ]]; then
-    success_log "分支为空，不切换"
-    return 1
-  fi
-  # 如果分支相同无需切换
-  if [ "$curr_br" = "$target_br" ]; then
-    success_log "分支相同，无需切换"
-    return 1
-  fi
-
-  # 提示是否需要切换
-  if [[ $no_prompt = 0 ]]; then
-    echo -n "是否进行切换？(y/n)"
-    read toContinue
-    if [[ "$toContinue" != "y" ]]; then
-      return 1
-    fi
-  fi
-
-  # 如果有内容修改
-  if [ -n "$(git status --porcelain)" ]; then
-    error_log "** 有内容修改未提交，无法切换分支"
-    error_log "** 请确认提交，或使用git stash保存空间之后，再切换分支"
-    return 0
-  fi
-  git fetch
-  success_log "切换分支到：$target_br"
-  branch_type=`get_branch_type $target_br`
-  if [ $branch_type = 0 ]; then
-    error_log "** 分支不存在，请检查是否添加过分支"
-    return 0
-  fi
-  git checkout $target_br
-  curr_br=`git symbolic-ref --short -q HEAD`
-  if [ "$curr_br" != "$target_br" ]; then
-    error_log "** 切换分支失败，当前分支：$curr_br"
-    return 0
-  fi
-  success_log "切换成功，当前分支：$curr_br"
-  if [ $branch_type = 2 ]; then
-    # 更新远程分支到本地
-    git pull --rebase
-  fi
-  return 1
-}
+#function get_branch_type() {
+#  # 判断远程分支是否存在
+#  if [ $(git ls-remote --heads $(git remote | head -1) "$1" | cut -d$'\t' -f2 | sed 's,refs/heads/,,' | grep ^"$1"$ | wc -l) != 0 ]; then
+#    echo 2
+#  # 判断只存在于本地，没有远程的分支
+#  elif [ -z "$(git branch --list $1)" ]; then
+#    echo 0
+#  else
+#    echo 1
+#  fi
+#}
+#
+#
+#function swith_branch() {
+#  # 查看当前分支
+#  curr_br=`git symbolic-ref --short -q HEAD`
+#  target_br=$1
+#  # 分支为空，不切换
+#  if [[ -z "$target_br" ]]; then
+#    success_log "分支为空，不切换"
+#    return 1
+#  fi
+#  # 如果分支相同无需切换
+#  if [ "$curr_br" = "$target_br" ]; then
+#    success_log "分支相同，无需切换"
+#    return 1
+#  fi
+#
+#  # 提示是否需要切换
+#  if [[ $no_prompt = 0 ]]; then
+#    echo -n "是否进行切换？(y/n)"
+#    read toContinue
+#    if [[ "$toContinue" != "y" ]]; then
+#      return 1
+#    fi
+#  fi
+#
+#  # 如果有内容修改
+#  if [ -n "$(git status --porcelain)" ]; then
+#    error_log "** 有内容修改未提交，无法切换分支"
+#    error_log "** 请确认提交，或使用git stash保存空间之后，再切换分支"
+#    return 0
+#  fi
+#  git fetch
+#  success_log "切换分支到：$target_br"
+#  branch_type=`get_branch_type $target_br`
+#  if [ $branch_type = 0 ]; then
+#    error_log "** 分支不存在，请检查是否添加过分支"
+#    return 0
+#  fi
+#  git checkout $target_br
+#  curr_br=`git symbolic-ref --short -q HEAD`
+#  if [ "$curr_br" != "$target_br" ]; then
+#    error_log "** 切换分支失败，当前分支：$curr_br"
+#    return 0
+#  fi
+#  success_log "切换成功，当前分支：$curr_br"
+#  if [ $branch_type = 2 ]; then
+#    # 更新远程分支到本地
+#    git pull --rebase
+#  fi
+#  return 1
+#}
 
 if [ $# -lt 1 ]; then
-  error_log "Usage: cb.sh [-y] filename [branch_index]"
+  error_log "Usage: "
+  error_log "cb.sh <options> <parameters>"
+  error_log "cb.sh [-y] filename [branch_index]"
   error_log "example: cb.sh brach_list.txt"
   error_log "example: cb.sh brach_list.txt 2"
   error_log "example: cb.sh -y brach_list.txt 2"
@@ -91,52 +93,58 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-no_prompt=0
-if [[ "$1" == "-y" ]]; then
-  #statements
-  no_prompt=1
-  shift 1
-fi
-filename=$1
-branch_index=$2
-if [ -z "$branch_index" ]; then
-  branch_index=1
-fi
-# 取当前目录
-base_dir=`pwd`
-# 一次读取所有行到数组
-mapfile lines < $filename
-# 遍历数组
-for i in "${!lines[@]}";   
-do
-  line=${lines[$i]}
-  # 过滤空行和#号开头的
-  if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
-    continue
+# 获取脚本文件所在路径
+BASH_HOME=$(dirname $(readlink -f "$0"))
+
+function batch_switch_branch() {
+  options=
+  if [[ "$1" == "-y" ]]; then
+    options=$1
+    shift 1
   fi
-  # 处理换行符
-  line=`echo $line | tr --delete '\n'`
-  line=`echo $line | tr --delete '\r'`
-  # 过滤空行
-  if [[ -z "$line" ]]; then
-    continue
+  filename=$1
+  branch_index=$2
+  if [ -z "$branch_index" ]; then
+    branch_index=1
   fi
-  success_log
-  success_log "当前行：$line"
-  # 根据空格或tab分割字符串
-  arr=($line)
-  # 第一个是项目
-  project=${arr[0]}
-  # 目标分支
-  target_br=${arr[$branch_index]}
-  # 打开文件夹
-  cd $base_dir/$project
-  success_log "当前目录：`pwd`"
-  # 查看当前分支
-  curr_br=`git symbolic-ref --short -q HEAD`
-  success_log "当前分支：$curr_br"
-  success_log "目标分支：$target_br"
-  # 切换分支
-  swith_branch $target_br
-  success_log "-----------------------"
-done
+  # 取当前目录
+  base_dir=`pwd`
+  # 一次读取所有行到数组
+  mapfile lines < $filename
+  # 遍历数组
+  for i in "${!lines[@]}";
+  do
+    line=${lines[$i]}
+    # 过滤空行和#号开头的
+    if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
+      continue
+    fi
+    # 处理换行符
+    line=`echo $line | tr --delete '\n'`
+    line=`echo $line | tr --delete '\r'`
+    # 过滤空行
+    if [[ -z "$line" ]]; then
+      continue
+    fi
+    success_log
+    success_log "当前行：$line"
+    # 根据空格或tab分割字符串
+    arr=($line)
+    # 第一个是项目
+    project=${arr[0]}
+    # 目标分支
+    target_br=${arr[$branch_index]}
+    # 打开文件夹
+    cd "$base_dir/$project" || exit
+    success_log "当前目录：`pwd`"
+    # 查看当前分支
+    curr_br=`git symbolic-ref --short -q HEAD`
+    success_log "当前分支：$curr_br"
+    success_log "目标分支：$target_br"
+    # 切换分支
+    sh "$BASH_HOME/switch_branch.sh" $options $target_br
+    success_log "-----------------------"
+  done
+}
+
+batch_switch_branch "$@"
