@@ -114,3 +114,5 @@ function batchNewBranchFromMaster() {
     success_log "-----------------------"
   done
 }
+
+batchNewBranchFromMaster "$@"
