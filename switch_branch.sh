@@ -13,27 +13,11 @@ function error_log() {
   echo -e "\033[31m $* \033[0m"
 }
 
-# 0 - 分支不存在
-# 1 - 本地分支，无远程
-# 2 - 远程分支
-function get_branch_type() {
-  # 判断远程分支是否存在
-  if [ $(git ls-remote --heads $(git remote | head -1) "$1" | cut -d$'\t' -f2 | sed 's,refs/heads/,,' | grep ^"$1"$ | wc -l) != 0 ]; then
-    echo 2
-  # 判断只存在于本地，没有远程的分支
-  elif [ -z "$(git branch --list $1)" ]; then
-    echo 0
-  else
-    echo 1
-  fi
-}
-
 if [ $# -lt 1 ] ; then
 	echo "Usage: switch_branch.sh to_branch_name [-y]"
 	echo "example: switch_branch.sh dev -y"
 	exit 1
 fi
-
 
 function switch_branch() {
   options=
@@ -73,7 +57,7 @@ function switch_branch() {
   fi
   git fetch
   success_log "切换分支到：$target_br"
-  branch_type=`get_branch_type $target_br`
+  branch_type=$(sh "$BASH_HOME/get_branch_type.sh" "$target_br")
   if [[ $branch_type = 0 ]]; then
     error_log "** 分支不存在，请检查是否添加过分支"
     return 0

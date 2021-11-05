@@ -81,16 +81,17 @@ function merge_branch() {
     success_log "分支已经合并无需再次合并"
     return 1
   fi
-  git merge $from_br
+  project=$(basename "$(pwd)")
+  git merge "$from_br"
   if [ -n "$(git status --porcelain)" ]; then
-    error_log "合并分支$from_br到$to_br，存在冲突"
+    error_log "合并$project分支$from_br到$to_br，存在冲突"
     return 0
   fi
-  success_log "合并分支$from_br到$to_br成功"
-  branch_type=`get_branch_type $to_br`
+  success_log "合并$project分支$from_br到$to_br成功"
+  branch_type=$(sh "$BASH_HOME/get_branch_type.sh" "$to_br")
   if [ $branch_type = 2 ]; then
     git push
-    success_log "已推送分支$to_br到远程"
+    success_log "已推送$project分支$to_br到远程"
   fi
   return 1
 }
