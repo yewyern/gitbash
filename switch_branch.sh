@@ -19,6 +19,9 @@ if [ $# -lt 1 ] ; then
 	exit 1
 fi
 
+# 获取脚本文件所在路径
+BASH_HOME=$(dirname $(readlink -f "$0"))
+
 function switch_branch() {
   options=
   if [[ "$1" == "-y" ]]; then
