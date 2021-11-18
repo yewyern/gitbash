@@ -126,6 +126,7 @@ merge_branch() {
     success_log "分支已经合并无需再次合并"
     return 1
   fi
+  project=$(basename "$(pwd)")
   git merge $from_br
   if [ -n "$(git status --porcelain)" ]; then
     error_log "合并$project分支$from_br到$to_br，存在冲突"
