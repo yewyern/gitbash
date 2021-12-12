@@ -36,3 +36,4 @@ if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
         . /mnt/c/github/gitbash/.bash_aliases
 fi
 ```
+
