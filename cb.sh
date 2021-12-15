@@ -62,19 +62,29 @@ function switch_branch() {
     return 1
   fi
 
+  needStash=0
   # 如果有内容修改
   if [[ -n "$(git status --porcelain)" ]]; then
-    error_log "** 有内容修改未提交，无法切换分支"
-    error_log "** 请确认提交，或使用git stash保存空间之后，再切换分支"
-    return 0
+    error_log "** 有内容修改未提交"
+    error_log "** 请确认是否需要切换，如确认切换，将使用git stash保存空间之后，再切换分支"
+    error_log "** 反之，请确认提交，或保存之后，再切换分支"
+    needStash=1
   fi
 
   # 提示是否需要切换
-  if [[ "$options" != "-y" ]]; then
+  if [[ "$options" != "-y" || $needStash = 1 ]]; then
     get_continue "是否进行切换？(y/n)"
     toContinue=$?
     if [ $toContinue = 0 ]; then
         return 1
+    fi
+  fi
+
+  if [ $needStash = 1 ]; then
+    git stash
+    if [[ -n "$(git status --porcelain)" ]]; then
+      error_log "** 使用git stash保存空间失败，无法切换分支"
+      return 0
     fi
   fi
 
@@ -95,6 +105,15 @@ function switch_branch() {
   if [[ $branch_type = 2 ]]; then
     # 更新远程分支到本地
     git pull --rebase
+  fi
+
+  if [ $needStash = 1 ]; then
+    get_continue "有保存的工作空间，是否需要还原？(y/n)"
+    toContinue=$?
+    if [ $toContinue = 0 ]; then
+        return 1
+    fi
+    git stash apply
   fi
   return 1
 }
