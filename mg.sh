@@ -84,6 +84,15 @@ merge_branch() {
   to_br=$2
   success_log "源分支：$from_br"
   success_log "目标分支：$to_br"
+  # 分支为空，不合并
+  if [[ -z "$from_br" ]]; then
+    success_log "源分支为空，不合并"
+    return 1
+  fi
+  if [[ -z "$to_br" ]]; then
+    success_log "目标分支为空，不合并"
+    return 1
+  fi
   # 如果分支一样的无需合并
   if [ "$from_br" = "$to_br" ]; then
     success_log "分支相同无需合并"
