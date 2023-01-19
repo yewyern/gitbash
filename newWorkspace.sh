@@ -31,8 +31,8 @@ base_dir=`pwd`
 if [ ! -d "$base_dir/$workspace_name" ];then
   success_log "创建工作目录：$workspace_name"
   mkdir "$workspace_name"
-  cp $filename $base_dir/$workspace_name/$filename
 fi
+cp $filename $base_dir/$workspace_name/$filename
 cd $workspace_name
 success_log "当前目录：`pwd`"
 # 遍历文件，每次处理一行
