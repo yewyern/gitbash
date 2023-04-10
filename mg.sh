@@ -28,13 +28,28 @@ function get_branch_type() {
   fi
 }
 
+function pull() {
+  target_br=$1
+  branch_type=$2
+  if [ $branch_type = 2 ]; then
+    # 更新远程分支到本地
+    git pull --rebase
+  fi
+}
+
 function switch_branch() {
   # 查看当前分支
   curr_br=`git symbolic-ref --short -q HEAD`
   target_br=$1
+  branch_type=`get_branch_type $target_br`
+  if [ $branch_type = 0 ]; then
+    error_log "** 分支不存在，请检查是否添加过分支"
+    return 0
+  fi
   # 如果分支相同无需切换
   if [ "$curr_br" = "$target_br" ]; then
     success_log "分支相同，无需切换"
+    pull $target_br $branch_type
     return 1
   fi
   # 如果有内容修改
@@ -57,10 +72,7 @@ function switch_branch() {
     return 0
   fi
   success_log "切换成功，当前分支：$curr_br"
-  if [ $branch_type = 2 ]; then
-    # 更新远程分支到本地
-    git pull --rebase
-  fi
+  pull $target_br $branch_type
   return 1
 }
 
