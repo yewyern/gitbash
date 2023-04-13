@@ -1,0 +1,6 @@
+# 此文件名格式为branchs_{env}.txt，其中env表示要集成的环境
+# 在下面配置对应的项目在该环境需要集成的分支
+# 如：project1，dev环境发布分支为dev,则配置如下
+project1 dev
+# 如：project2，dev环境发布分支为dev1,则配置如下
+project2 dev1

@@ -1,0 +1,9 @@
+Usage: cb.sh [-y] filename [branch_index]
+example: cb.sh brach_list.txt
+example: cb.sh brach_list.txt 2
+example: cb.sh -y brach_list.txt 2
+brach_list.txt like this:
+test1	dev	test master
+test2	dev	test master
+
+

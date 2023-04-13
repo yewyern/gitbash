@@ -5,6 +5,43 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
+bash_dir=$(dirname "$0")
+base_dir=$(pwd)
+flag=false
+
+# 解析命令行选项
+while getopts ":yh:" opt; do
+    case $opt in
+        -h | --help )
+            cat $bash_dir"/usage/cb.usage"
+            exit 0
+            ;;
+        y)
+            flag=true
+            ;;
+        \?)
+            echo "无效的选项： -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "选项 -$OPTARG 需要一个参数" >&2
+            exit 1
+            ;;
+    esac
+done
+# 移除已处理的选项参数
+shift $((OPTIND-1))
+
+if [ $# -lt 1 ]; then
+    cat $bash_dir"/usage/cb.usage"
+    exit 1
+else
+    echo "剩余的参数：$@"
+    exit 1
+fi
+
+
+
 function success_log() {
   echo -e "\033[32m $* \033[0m"
 }
@@ -169,6 +206,9 @@ function batch_switch_branch() {
     success_log
   done
 }
+
+
+
 
 if [ $# -lt 1 ]; then
   error_log "Usage: cb.sh [-y] filename [branch_index]"

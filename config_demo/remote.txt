@@ -1,0 +1,2 @@
+# 此文件配置项目名和远程地址
+project-name    http://project-git-url

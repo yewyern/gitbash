@@ -1,0 +1,14 @@
+# 此文件主要用于配置任务项目清单
+
+# task_desc 表示任务描述
+task_desc=此任务为demo任务
+
+# task_work_dir 表示任务所属项目的路径，一般情况下一个任务的项目都放在一个路径下面
+# 注意：结尾不需要/
+task_work_dir=/c/git
+
+# task_branch 表示任务开发分支，一般情况下一个任务的项目都是一个分支
+task_branch=branchA
+
+# task_projects 表示任务包含哪些项目，使用','分隔
+task_projects=project1,project2

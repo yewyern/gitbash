@@ -1,17 +1,20 @@
-# gitbash
+# gitbash 2.0
+## 简介
 git脚本
 
-batchdel.sh        批量删除脚本<br/>
-batchSetRemote.sh  批量设置远程url脚本<br/>
-cb.sh              一键切换分支脚本<br/>
-meg                合并分支脚本<br/>
-mg.sh              一键合并分支脚本<br/>
-rb.sh              rebase合并分支脚本<br/>
-rbt                rebase to 分支<br/>
-taga               git打tag并推送远程<br/>
-tagd               git删除tag并推送远程<br/>
+| 脚本名               | 功能            | 
+|-------------------|---------------|
+| batchdel.sh       | 批量删除脚本        |
+| batchSetRemote.sh | 批量设置远程url脚本   |
+| cb.sh             | 批量切换分支脚本      |
+| mg.sh             | 一键合并分支脚本      |
+| rb.sh             | rebase合并分支脚本  |
+| rbt               | rebase to 分支  |
+| taga              | git打tag并推送远程  |
+| tagd              | git删除tag并推送远程 |
 
-## Windows配置
+## 环境配置
+### Windows配置
 
 打开cmd
 
@@ -26,7 +29,7 @@ if [ -f /c/github/gitbash/.bash_profile ]; then
 fi
 ```
 
-## ubuntu配置
+### ubuntu配置
 
 ```shell
 vi ~/.bashrc
@@ -37,3 +40,6 @@ if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
 fi
 ```
 
+## 项目配置
+1. 修改config_demo文件夹为config文件夹
+2. 修改config_demo文件夹为config文件夹
