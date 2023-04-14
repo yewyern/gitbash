@@ -10,7 +10,6 @@ bash_dir=$(dirname "$0")
 base_dir=$(pwd)
 command=show
 task_table=$bash_dir"/config/tasks.txt"
-task_table_config=$bash_dir"/config/tasks.cfg"
 
 function usage() {
     cat $bash_dir"/usage/task_manage.usage"
@@ -45,22 +44,8 @@ function del() {
     sed -i "/^$1 *|.*| *$/s/$/ deleted/" $task_table
 }
 
-function get() {
-    if [ $# -lt 1 ]; then
-        usage
-        exit 1
-    fi
-    task_id=$1
-    task_field=$2
-    source $task_table_config
-    field_index_name=$task_field"_field_index"
-    grep "^$task_id *|" $task_table | grep -v "deleted" | cut -d"|" -f${!field_index_name}
-}
-
 if [ 'show' == $command ]; then
     show $@
 elif [ 'del' == $command ]; then
     del $@
-elif [ 'get' == $command ]; then
-    get $@
 fi

@@ -7,23 +7,17 @@
 
 bash_dir=$(dirname "$0")
 base_dir=$(pwd)
+source $bash_dir"/util.sh"
+
 flag=false
-task_id=
+declare -A task_info
+projects=()
 task_branch=
 env=
-work_dir=
-projects=
+branch_env_file=
 
 function usage() {
     cat $bash_dir"/usage/cb.usage"
-}
-
-function success_log() {
-  echo -e "\033[32m $* \033[0m"
-}
-
-function error_log() {
-  echo -e "\033[31m $* \033[0m"
 }
 
 # 0 - 分支不存在
@@ -52,12 +46,6 @@ function get_continue() {
 }
 
 function switch_branch() {
-  options=
-  if [[ "$1" == "-y" ]]; then
-    options=$1
-    shift 1
-  fi
-
   # 查看当前分支
   curr_br=$(git symbolic-ref --short -q HEAD)
   target_br=$1
@@ -85,7 +73,7 @@ function switch_branch() {
   fi
 
   # 提示是否需要切换
-  if [[ "$options" != "-y" || $needStash = 1 ]]; then
+  if [[ !$flag || $needStash = 1 ]]; then
     get_continue "是否进行切换？(y/n)"
     toContinue=$?
     if [ $toContinue = 0 ]; then
@@ -133,63 +121,57 @@ function switch_branch() {
 
 
 function switch_branch_with_project() {
-    options=
-    if [[ "$1" == "-y" ]]; then
-      options=$1
-      shift 1
-    fi
     project_dir=$1
     target_br=$2
     # 打开文件夹
     cd "$project_dir" || exit
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-
     # 切换分支
-    switch_branch $options $target_br
+    switch_branch $target_br
+    success_log "-----------------------"
+    success_log
 }
 
 function batch_switch_branch() {
-    work_dir=`$bash_dir/task_manage.sh get $task_id work_dir`
-    if [ $work_dir == '' ]; then
-        error_log "未找到对应的任务，请检查任务配置"
-    fi
-    echo $work_dir
-    if [[ $env == '' && $task_branch == '' ]]; then
-        task_branch=`$bash_dir/task_manage.sh get $task_id task_branch`
-    fi
-    echo $task_branch
-    projects=`$bash_dir/task_manage.sh get $task_id projects`
-    echo $projects
-    project_arr=(${projects//,/ })
-    for var in ${project_arr[@]}
+    for i in "${!projects[@]}";
     do
-        echo $var
+        project=${projects[$i]}
+        work_dir=${task_info["work_dir"]}
+        if [[ $task_branch == '' ]]; then
+            if [ $env != '' ]; then
+                task_branch=`get_value_by_key "$branch_env_file" "$project" " "`
+            else
+                task_branch=${task_info["task_branch"]}
+            fi
+        fi
+        switch_branch_with_project $work_dir"/"$project $task_branch
     done
+}
 
-#  filename=$1
-#  branch_index=$2
-#  if [ -z "$branch_index" ]; then
-#    branch_index=1
-#  fi
-#
-#  # 去除以#开头的行和空行
-#  OLD_IFS=$IFS
-#  echo $OLD_IFS
-#  IFS=$'\n'
-#  lines=($(sed '/^#.*$/d' "$filename" | sed '/^$/d'))
-#  IFS=$OLD_IFS
-#  for i in "${!lines[@]}";
-#  do
-#    line=${lines[$i]}
-#    # 字符串拼接可以放到双引号内，也可以放到双引号外，放到双引号内可能出现问题，丢失部分字符，原因未知
-#    success_log "当前行："$line
-#    # $(($branch_index + 1)) branch_index 是从1开始的，但是前面有个project_name，所以branch_index要加1
-#    line=$(echo $line | awk -v base="$base_dir" -v opt="$options" -v N="$(($branch_index + 1))" '{print opt,base"/"$1,$N}')
-#    switch_branch_with_project $line
-#    success_log "-----------------------"
-#    success_log
-#  done
+function get_task() {
+    # 解析taskInfo
+    OLD_IFS=$IFS
+    IFS=$'\n'
+    lines=(`$bash_dir/task_manage.sh show $task_id`)
+    len=${#lines[@]}
+    if [ $len != 2 ]; then
+        error_log "未找到对应的任务，请检查任务配置"
+        exit 1
+    fi
+    IFS='|'
+    read -r -a head <<< "${lines[0]}"
+    read -r -a data <<< "${lines[1]}"
+    for i in "${!head[@]}";
+    do
+        key=`trim ${head[$i]}`
+        val=`trim ${data[$i]}`
+        # 字符串拼接可以放到双引号内，也可以放到双引号外，放到双引号内可能出现问题，丢失部分字符，原因未知
+        task_info["$key"]="$val"
+    done
+    IFS=','
+    projects=(${task_info["projects"]})
+    IFS=$OLD_IFS
 }
 
 # 解析参数
@@ -201,7 +183,7 @@ while true ; do
         -h) usage; exit 0 ;;
         -y) flag=true; shift ;;
         -b) task_branch=$2; shift 2 ;;
-        -e) env=$2; shift 2 ;;
+        -e) env=$2; branch_env_file=$bash_dir"/config/branch_"$env".txt"; shift 2 ;;
         --) shift; break ;;
         *) usage; exit 1 ;;
     esac
@@ -212,6 +194,7 @@ if [ $# -lt 1 ]; then
     exit 1
 else
     task_id=$1
+    get_task
     batch_switch_branch
     exit 0
 fi

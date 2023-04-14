@@ -3,6 +3,5 @@ The task manage commands:
     show                        show all tasks(exclude deleted)
     show <task_id>              show the task by id
     del  <task_id>              delete the task by id
-    get  <task_id>  <field>     get the task field by id, the fields can get by the head line with show command
 
 
