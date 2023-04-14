@@ -1,9 +1,14 @@
-Usage: cb.sh [-y] filename [branch_index]
-example: cb.sh brach_list.txt
-example: cb.sh brach_list.txt 2
-example: cb.sh -y brach_list.txt 2
-brach_list.txt like this:
-test1	dev	test master
-test2	dev	test master
+Usage: cb.sh <task_id> [-h] [-y] [-e <env>] [-b <branch>]
+    -h 显示帮助文档
+    -y 直接切换，无需确认
+    -e 根据环境配置切换，需要在config文件中配置branch_{env}.txt，不指定则切换到开发分支
+    -b 切换到指定的分支，不指定则切换到开发分支
 
+    task_id 可以通过 `task_manage.sh show` 查看
+example: cb.sh 1 -y
+    批量切换task_id为1的所有项目到开发分支，无需确认
+example: cb.sh 1 -y -e sit
+    批量切换task_id为1的所有项目到sit分支，无需确认
+example: cb.sh 1 -b branch1
+    批量切换task_id为1的所有项目到branch1，需要确认
 

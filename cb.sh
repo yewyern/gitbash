@@ -8,39 +8,15 @@
 bash_dir=$(dirname "$0")
 base_dir=$(pwd)
 flag=false
+task_id=
+task_branch=
+env=
+work_dir=
+projects=
 
-# 解析命令行选项
-while getopts ":yh:" opt; do
-    case $opt in
-        -h | --help )
-            cat $bash_dir"/usage/cb.usage"
-            exit 0
-            ;;
-        y)
-            flag=true
-            ;;
-        \?)
-            echo "无效的选项： -$OPTARG" >&2
-            exit 1
-            ;;
-        :)
-            echo "选项 -$OPTARG 需要一个参数" >&2
-            exit 1
-            ;;
-    esac
-done
-# 移除已处理的选项参数
-shift $((OPTIND-1))
-
-if [ $# -lt 1 ]; then
+function usage() {
     cat $bash_dir"/usage/cb.usage"
-    exit 1
-else
-    echo "剩余的参数：$@"
-    exit 1
-fi
-
-
+}
 
 function success_log() {
   echo -e "\033[32m $* \033[0m"
@@ -174,51 +150,69 @@ function switch_branch_with_project() {
 }
 
 function batch_switch_branch() {
-  options=
-  if [[ "$1" == "-y" ]]; then
-    options=$1
-    shift 1
-  fi
-  filename=$1
-  branch_index=$2
-  if [ -z "$branch_index" ]; then
-    branch_index=1
-  fi
+    work_dir=`$bash_dir/task_manage.sh get $task_id work_dir`
+    if [ $work_dir == '' ]; then
+        error_log "未找到对应的任务，请检查任务配置"
+    fi
+    echo $work_dir
+    if [[ $env == '' && $task_branch == '' ]]; then
+        task_branch=`$bash_dir/task_manage.sh get $task_id task_branch`
+    fi
+    echo $task_branch
+    projects=`$bash_dir/task_manage.sh get $task_id projects`
+    echo $projects
+    project_arr=(${projects//,/ })
+    for var in ${project_arr[@]}
+    do
+        echo $var
+    done
 
-  # 取当前目录
-  base_dir=$(pwd)
-
-  # 去除以#开头的行和空行
-  OLD_IFS=$IFS
-  echo $OLD_IFS
-  IFS=$'\n'
-  lines=($(sed '/^#.*$/d' "$filename" | sed '/^$/d'))
-  IFS=$OLD_IFS
-  for i in "${!lines[@]}";
-  do
-    line=${lines[$i]}
-    # 字符串拼接可以放到双引号内，也可以放到双引号外，放到双引号内可能出现问题，丢失部分字符，原因未知
-    success_log "当前行："$line
-    # $(($branch_index + 1)) branch_index 是从1开始的，但是前面有个project_name，所以branch_index要加1
-    line=$(echo $line | awk -v base="$base_dir" -v opt="$options" -v N="$(($branch_index + 1))" '{print opt,base"/"$1,$N}')
-    switch_branch_with_project $line
-    success_log "-----------------------"
-    success_log
-  done
+#  filename=$1
+#  branch_index=$2
+#  if [ -z "$branch_index" ]; then
+#    branch_index=1
+#  fi
+#
+#  # 去除以#开头的行和空行
+#  OLD_IFS=$IFS
+#  echo $OLD_IFS
+#  IFS=$'\n'
+#  lines=($(sed '/^#.*$/d' "$filename" | sed '/^$/d'))
+#  IFS=$OLD_IFS
+#  for i in "${!lines[@]}";
+#  do
+#    line=${lines[$i]}
+#    # 字符串拼接可以放到双引号内，也可以放到双引号外，放到双引号内可能出现问题，丢失部分字符，原因未知
+#    success_log "当前行："$line
+#    # $(($branch_index + 1)) branch_index 是从1开始的，但是前面有个project_name，所以branch_index要加1
+#    line=$(echo $line | awk -v base="$base_dir" -v opt="$options" -v N="$(($branch_index + 1))" '{print opt,base"/"$1,$N}')
+#    switch_branch_with_project $line
+#    success_log "-----------------------"
+#    success_log
+#  done
 }
 
-
-
+# 解析参数
+parameters=`getopt -o hyb:e: -n "$0" -- "$@"`
+[ $? != 0 ] && exit 1
+eval set -- "$parameters"
+while true ; do
+    case "$1" in
+        -h) usage; exit 0 ;;
+        -y) flag=true; shift ;;
+        -b) task_branch=$2; shift 2 ;;
+        -e) env=$2; shift 2 ;;
+        --) shift; break ;;
+        *) usage; exit 1 ;;
+    esac
+done
 
 if [ $# -lt 1 ]; then
-  error_log "Usage: cb.sh [-y] filename [branch_index]"
-  error_log "example: cb.sh brach_list.txt"
-  error_log "example: cb.sh brach_list.txt 2"
-  error_log "example: cb.sh -y brach_list.txt 2"
-  error_log "brach_list.txt like this: "
-  error_log "test1	dev	test master"
-  error_log "test2	dev	test master"
-  exit 1
+    usage
+    exit 1
+else
+    task_id=$1
+    batch_switch_branch
+    exit 0
 fi
 
-batch_switch_branch "$@"
