@@ -8,44 +8,29 @@
 # 默认选项值
 bash_dir=$(dirname "$0")
 base_dir=$(pwd)
-command=show
-task_table=$bash_dir"/config/tasks.txt"
+source $bash_dir"/task_common.sh"
 
 function usage() {
     cat $bash_dir"/usage/task_manage.usage"
 }
 
-# 处理command
-if [ $# -lt 1 ]; then
-    usage
-    exit 1
-fi
-command=$1
-shift 1
-
-function show() {
-    if [ $# == 1 ]; then
-        # 展示指定的任务
-        head -n1 $task_table
-        grep "^$1 *|" $task_table | grep -v "deleted"
-    else
-        # 展示所有的任务(不包含deleted)
-        grep -v "deleted" $task_table
-    fi
-}
-
-function del() {
-    echo "删除task, id="$@
-    if [ $# != 1 ]; then
+function main() {
+    # 处理command
+    if [ $# -lt 1 ]; then
         usage
         exit 1
     fi
-    # 查找并标记为删除
-    sed -i "/^$1 *|.*| *$/s/$/ deleted/" $task_table
+    command=$1
+    shift 1
+
+    if [ 'show' == $command ]; then
+        list_task "$@"
+    elif [ 'del' == $command ]; then
+        del_task "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
+    fi
 }
 
-if [ 'show' == $command ]; then
-    show $@
-elif [ 'del' == $command ]; then
-    del $@
-fi
+main "$@"
