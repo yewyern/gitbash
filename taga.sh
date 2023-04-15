@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
 # 一键打tag test_v6.2.8_20200113

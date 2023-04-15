@@ -45,6 +45,20 @@ function git_stash_apply() {
     return $?
 }
 
+# 设置远程url
+function git_set_remote() {
+    if [ $# -lt 1 ]; then
+        exit $FAILED
+    fi
+    git remote set-url origin $1
+    return $?
+}
+
+# 获取远程url
+function git_get_remote() {
+    git remote -v | grep fetch | awk '{print $2}'
+}
+
 # 确认当前分支类型，如果是远程分支，拉取远程分支
 function git_pull() {
     curr_branch=$(git_current_branch)
