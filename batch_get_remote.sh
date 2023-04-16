@@ -17,14 +17,12 @@ function error_log() {
 filename=$1
 if [[ -z "$filename" ]]; then
     filename=temp.txt
-    echo>$filename
+    echo >$filename
     fileList=$(ls)
-    for fn in $fileList
-    do
-        if test -d "$fn"
-         then
-                echo "$fn">>$filename
-         fi
+    for fn in $fileList; do
+        if test -d "$fn"; then
+            echo "$fn" >>$filename
+        fi
     done
 fi
 
@@ -32,12 +30,11 @@ fi
 base_dir=$(pwd)
 # 初始化结果文件
 res_file=remote.txt
-echo>$res_file
+echo >$res_file
 # 一次读取所有行到数组
-mapfile lines < $filename
+mapfile lines <$filename
 # 遍历数组
-for i in "${!lines[@]}";
-do
+for i in "${!lines[@]}"; do
     line=${lines[$i]}
     # 过滤空行和#号开头的
     if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
@@ -57,11 +54,11 @@ do
     # 第一个是项目
     project=${arr[0]}
     # 打开文件夹
-    cd $base_dir/$project
-    success_log "当前目录：`pwd`"
+    cd "$base_dir/$project" || continue
+    success_log "当前目录：$(pwd)"
     # 查看当前分支
-    remote_url=`git remote -v | grep fetch | awk '{print $2}'`
-    echo $remote_url
-    echo "$project $remote_url">>$base_dir/$res_file
+    remote_url=$(git remote -v | grep fetch | awk '{print $2}')
+    echo "$remote_url"
+    echo "$project $remote_url" >>"$base_dir/$res_file"
     success_log "-----------------------"
 done

@@ -6,9 +6,9 @@
 # @date: 2020-12-08
 
 bash_dir=$(dirname "$0")
-base_dir=$(pwd)
-source $bash_dir"/git_common.sh"
-source $bash_dir"/task_common.sh"
+#base_dir=$(pwd)
+source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
 
 flag=0
 task_branch=
@@ -16,7 +16,7 @@ env=
 branch_env_file=
 
 function usage() {
-    cat $bash_dir"/usage/cb.usage"
+    cat "$bash_dir/usage/cb.usage"
 }
 
 function switch_branch_with_project() {
@@ -62,7 +62,7 @@ function main() {
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
             -b) task_branch=$2; shift 2 ;;
-            -e) env=$2; branch_env_file=$bash_dir"/config/branch_"$env".txt"; shift 2 ;;
+            -e) env=$2; branch_env_file="$bash_dir/config/branch_$env.txt"; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac

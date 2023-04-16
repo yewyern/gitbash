@@ -6,9 +6,9 @@
 # @date: 2020-12-08
 
 bash_dir=$(dirname "$0")
-base_dir=$(pwd)
-source $bash_dir"/git_common.sh"
-source $bash_dir"/task_common.sh"
+#base_dir=$(pwd)
+source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
 
 flag=0
 task_branch=
@@ -18,7 +18,7 @@ from_branch=
 to_branch=
 
 function usage() {
-    cat $bash_dir"/usage/mg.usage"
+    cat "$bash_dir/usage/mg.usage"
 }
 
 function merge_branch_with_project() {

@@ -61,6 +61,11 @@ function git_get_remote() {
 
 # 确认当前分支类型，如果是远程分支，拉取远程分支
 function git_pull() {
+    git_status_ok
+    if [ $? == $FAILED ]; then
+        error_log "** 有内容修改未提交，无法更新远程分支到本地"
+        return $FAILED
+    fi
     curr_branch=$(git_current_branch)
     branch_type=$(git_branch_type "$curr_branch")
     if [ $branch_type == 2 ]; then
