@@ -61,7 +61,7 @@ function batch_merge_branch() {
 
 function main() {
     # 解析参数
-    params=`getopt -o hye:f:t: --long from_branch:,to_branch: -n "$0" -- "$@"`
+    params=`getopt -o hye:f:t: --long from-branch:,to-branch: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
     eval set -- "$params"
     while true ; do
@@ -69,8 +69,8 @@ function main() {
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
             -e) env=$2; branch_env_file=$bash_dir"/config/branch_"$env".txt"; shift 2 ;;
-            -f | --from_branch) from_branch=$2; shift 2 ;;
-            -t | --to_branch) to_branch=$2; shift 2 ;;
+            -f | --from-branch) from_branch=$2; shift 2 ;;
+            -t | --to-branch) to_branch=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac

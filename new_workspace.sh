@@ -10,7 +10,8 @@ bash_dir=$(dirname "$0")
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
 
-remote_filename="$bash_dir/config/remote.txt"
+remote_file="remote.txt"
+task_mode=1
 flag=0
 work_dir=
 task_branch=
@@ -48,9 +49,9 @@ function add_project() {
             fi
         fi
         # 目标项目git url
-        remote_url=$(get_value_by_key "$remote_filename" "$project" 0 1)
+        remote_url=$(get_value_by_key "$remote_file" "$project" 0 1)
         if [[ -z "$remote_url" ]]; then
-            error_log "未找到项目远程地址，请确认$remote_filename 是否正确！"
+            error_log "未找到项目远程地址，请确认$remote_file 是否正确！"
             return $FAILED
         fi
         success_log "当前目录：$(pwd)"
@@ -58,9 +59,7 @@ function add_project() {
     fi
 }
 
-function batch_switch_branch() {
-    work_dir=${task_info["work_dir"]}
-    task_branch=${task_info["task_branch"]}
+function new_workspace() {
     if [ ! -d "$work_dir" ]; then
         success_log "创建工作目录：$work_dir"
         mkdir -p "$work_dir"
@@ -68,8 +67,9 @@ function batch_switch_branch() {
     cd "$work_dir" || exit
     for i in "${!task_projects[@]}"; do
         project=${task_projects[$i]}
+        echo $project
         add_project $project
-        switch_branch_with_project $work_dir"/"$project $task_branch
+        [ "$task_branch" != '' ] && switch_branch_with_project "$work_dir/$project" "$task_branch"
         success_log "-----------------------"
         success_log
     done
@@ -77,9 +77,9 @@ function batch_switch_branch() {
 
 function main() {
     # 解析参数
-    parameters=$(getopt -o hy -n "$0" -- "$@")
+    params=`getopt -o hynr:w: --long remote-file:,work-dir: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
-    eval set -- "$parameters"
+    eval set -- "$params"
     while true; do
         case "$1" in
         -h)
@@ -89,6 +89,18 @@ function main() {
         -y)
             flag=1
             shift
+            ;;
+        -n)
+            task_mode=0
+            shift
+            ;;
+        -r | --remote-file)
+            remote_file=$2
+            shift 2
+            ;;
+        -w | --work-dir)
+            work_dir=$2
+            shift 2
             ;;
         --)
             shift
@@ -101,14 +113,40 @@ function main() {
         esac
     done
 
-    if [ $# -lt 1 ]; then
-        usage
-        exit 1
-    else
-        get_task $1
-        batch_switch_branch
-        exit 0
+    if [ ! -f "$remote_file" ]; then
+        # 如果找不到配置文件，在脚本路径下寻找
+        if [ ! -f "$bash_dir/config/$remote_file" ]; then
+            # 还找不到，报错
+            error_log "未找到对应的远程配置文件：$remote_file"
+            usage
+            exit 1
+        fi
+        remote_file="$bash_dir/config/$remote_file"
     fi
+
+    if [ $task_mode == 0 ]; then
+        # 非任务模式
+        if [ "$work_dir" == '' ]; then
+            usage
+            exit 1
+        fi
+    fi
+
+    if [ $task_mode == 1 ]; then
+        # 使用任务模式
+        if [ $# -lt 1 ]; then
+            usage
+            exit 1
+        fi
+        get_task $1
+        if [ "$work_dir" == '' ]; then
+            work_dir=${task_info["work_dir"]}
+        fi
+        task_branch=${task_info["task_branch"]}
+    fi
+    work_dir=`realpath "$work_dir"`
+    new_workspace
+    exit 0
 }
 
 main "$@"
