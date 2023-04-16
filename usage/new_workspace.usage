@@ -2,6 +2,7 @@ Usage: new_workspace.sh <task_id> [-h] [-y]
     -h 显示帮助文档
     -y 直接切换，无需确认
 
+    注意：需在config/remote.txt中配置项目对应的远程分支
     task_id 可以通过 `task_manage.sh show` 查看
 
 example: new_workspace.sh 1 -y
