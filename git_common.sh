@@ -24,11 +24,18 @@ function git_branch_type() {
     return 0
 }
 
-# 确认当前分支类型，如果是远程分支，推送到远程
-function git_status_ok() {
-    git status
+function is_git_repository() {
+    git status > /dev/null
     if [ $? != $SUCCESS ]; then
         error_log "** 非git仓库"
+        return $FAILED
+    fi
+}
+
+# 确认当前分支类型，如果是远程分支，推送到远程
+function git_status_ok() {
+    is_git_repository
+    if [ $? != $SUCCESS ]; then
         return $FAILED
     fi
     if [[ -n "$(git status --porcelain)" ]]; then
@@ -62,6 +69,10 @@ function git_set_remote() {
 
 # 获取远程url
 function git_get_remote() {
+    is_git_repository
+    if [ $? != $SUCCESS ]; then
+        return $FAILED
+    fi
     git remote -v | grep fetch | awk '{print $2}'
 }
 

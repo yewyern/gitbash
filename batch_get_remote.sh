@@ -5,60 +5,67 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
-function success_log() {
-    echo -e "\033[32m $* \033[0m"
-}
-
-function error_log() {
-    echo -e "\033[31m $* \033[0m"
-}
-
-# 获取当前目录下所有文件夹
-filename=$1
-if [[ -z "$filename" ]]; then
-    filename=temp.txt
-    echo >$filename
-    fileList=$(ls)
-    for fn in $fileList; do
-        if test -d "$fn"; then
-            echo "$fn" >>$filename
-        fi
-    done
-fi
-
-# 取当前目录
+bash_dir=$(dirname "$0")
 base_dir=$(pwd)
+source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
+
+flag=0
+projects=()
 # 初始化结果文件
 res_file=remote.txt
 echo >$res_file
-# 一次读取所有行到数组
-mapfile lines <$filename
-# 遍历数组
-for i in "${!lines[@]}"; do
-    line=${lines[$i]}
-    # 过滤空行和#号开头的
-    if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
-        continue
-    fi
-    # 处理换行符
-    line=$(echo $line | tr --delete '\n')
-    line=$(echo $line | tr --delete '\r')
-    # 过滤空行
-    if [[ -z "$line" ]]; then
-        continue
-    fi
-    success_log
-    success_log "当前行：$line"
-    # 根据空格或tab分割字符串
-    arr=($line)
-    # 第一个是项目
-    project=${arr[0]}
+
+function usage() {
+    cat "$bash_dir/usage/batch_pull.usage"
+}
+
+function get_remote_with_project() {
+    project=$1
     # 打开文件夹
-    cd "$base_dir/$project" || continue
-    success_log "当前目录：$(pwd)"
+    cd "$base_dir/$project" || return $FAILED
+    curr_dir=$(pwd)
+    success_log "当前目录：$curr_dir"
     # 查看当前分支
-    remote_url=$(git remote -v | grep fetch | awk '{print $2}')
+    remote_url=`git_get_remote`
+    if [ $? != $SUCCESS ]; then
+        return $FAILED
+    fi
+    if [ "$remote_url" == '' ]; then
+        error_log "无远程仓库"
+        return $FAILED
+    fi
     echo "$remote_url"
     echo "$project $remote_url" >>"$base_dir/$res_file"
-    success_log "-----------------------"
-done
+}
+
+function batch_get_remote() {
+    for i in "${!projects[@]}";
+    do
+        project=${projects[$i]}
+        get_remote_with_project $project
+        success_log "-----------------------"
+        success_log
+    done
+}
+
+function main() {
+    # 解析参数
+    parameters=`getopt -o hy -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$parameters"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
+        esac
+    done
+
+    projects=($(get_directories))
+    batch_get_remote
+    exit 0
+}
+
+main "$@"

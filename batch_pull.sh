@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
-# 一键切换分支
+# 批量更新脚本
 # @author: 徐宙
 # @date: 2020-12-08
 
@@ -24,8 +24,7 @@ function pull_with_project() {
     cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-    # 切换分支
-    # 提示是否需要切换
+    # 提示是否进行更新
     if [[ $flag == 0 ]]; then
         get_continue "是否进行更新？(y/n)"
         toContinue=$?
