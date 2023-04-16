@@ -19,6 +19,8 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+# 删除文件夹使用下面的命令无法展示出被删除的文件夹，也无法进行确认
+#find . -name "$dirname" -type d | xargs -i rm -r {}
 dirname=$1
 find . -name "$dirname" -type d >batchdel.tmp
 # 遍历文件，每次处理一行

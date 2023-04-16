@@ -1,0 +1,9 @@
+Usage: new_workspace.sh <task_id> [-h] [-y]
+    -h 显示帮助文档
+    -y 直接切换，无需确认
+
+    task_id 可以通过 `task_manage.sh show` 查看
+
+example: new_workspace.sh 1 -y
+    根据task_id=1的任务配置，创建work_dir目录，并拉取该任务的所有项目，并切换到开发分支，无需确认
+

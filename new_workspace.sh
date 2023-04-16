@@ -5,63 +5,110 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
-remote_filename=remote.txt
+bash_dir=$(dirname "$0")
+#base_dir=$(pwd)
+source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
 
-function success_log() {
-    echo -e "\033[32m $* \033[0m"
+remote_filename="$bash_dir/config/remote.txt"
+flag=0
+work_dir=
+task_branch=
+
+function usage() {
+    cat "$bash_dir/usage/new_workspace.usage"
 }
 
-function error_log() {
-    echo -e "\033[31m $* \033[0m"
-}
-
-if [ $# -lt 2 ]; then
-    error_log "Usage: cb.sh filename workspace_name"
-    error_log "example: cb.sh brach_list.txt esjob"
-    error_log "brach_list.txt like this: "
-    error_log "test1	dev"
-    error_log "test2	dev"
-    exit 1
-fi
-
-filename=$1
-workspace_name=$2
-# 取当前目录
-base_dir=`pwd`
-if [ ! -d "$base_dir/$workspace_name" ];then
-    success_log "创建工作目录：$workspace_name"
-    mkdir "$workspace_name"
-fi
-cp $filename $base_dir/$workspace_name/$filename
-cd $workspace_name
-success_log "当前目录：`pwd`"
-# 遍历文件，每次处理一行
-while read line || [[ -n $line ]]; do
-    line=`echo $line | tr --delete '\n'`
-    line=`echo $line | tr --delete '\r'`
-    # 跳过以"#"号开头的行，可以注释某些行，更灵活
-    if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
-        continue
-    fi
-    success_log
-    success_log "当前行：$line"
-    # 根据空格或tab分割字符串
-    arr=($line)
-    # 第一个是项目
-    project=${arr[0]}
-    if [ ! -d "$base_dir/$workspace_name/$project" ];then
-        # 目标项目git url
-        remote_url=`grep "^$project " $base_dir/$remote_filename | awk '{print $2}'`
-        if [[ -z "$remote_url" ]]; then
-            error_log "未找到项目远程地址，请确认$base_dir/$remote_filename是否正确！"
-            continue
-        fi
-        cd $base_dir/$workspace_name
-        success_log "当前目录：`pwd`"
-        git clone $remote_url
-    fi
+function switch_branch_with_project() {
+    project_dir=$1
+    target_br=$2
     # 打开文件夹
-    cd $base_dir/$workspace_name/$project
-    success_log "当前目录：`pwd`"
-    success_log "-----------------------"
-done < $filename
+    cd "$project_dir" || return $FAILED
+    curr_dir=$(pwd)
+    success_log "当前目录：$curr_dir"
+    # 切换分支
+    if [ $flag == 1 ]; then
+        git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
+    else
+        git_switch_branch $target_br --fetch_before --pull_after --stash prompt
+    fi
+}
+
+function add_project() {
+    cd "$work_dir" || return $FAILED
+    project=$1
+    project_dir="$work_dir/$project"
+    if [ ! -d "$project_dir" ]; then
+        # 创建项目
+        if [ $flag == 0 ]; then
+            get_continue "是否进行拉取项目？(y/n)"
+            toContinue=$?
+            if [ $toContinue == $FAILED ]; then
+                return $SUCCESS
+            fi
+        fi
+        # 目标项目git url
+        remote_url=$(get_value_by_key "$remote_filename" "$project" 0 1)
+        if [[ -z "$remote_url" ]]; then
+            error_log "未找到项目远程地址，请确认$remote_filename 是否正确！"
+            return $FAILED
+        fi
+        success_log "当前目录：$(pwd)"
+        git clone "$remote_url"
+    fi
+}
+
+function batch_switch_branch() {
+    work_dir=${task_info["work_dir"]}
+    task_branch=${task_info["task_branch"]}
+    if [ ! -d "$work_dir" ]; then
+        success_log "创建工作目录：$work_dir"
+        mkdir -p "$work_dir"
+    fi
+    cd "$work_dir" || exit
+    for i in "${!task_projects[@]}"; do
+        project=${task_projects[$i]}
+        add_project $project
+        switch_branch_with_project $work_dir"/"$project $task_branch
+        success_log "-----------------------"
+        success_log
+    done
+}
+
+function main() {
+    # 解析参数
+    parameters=$(getopt -o hy -n "$0" -- "$@")
+    [ $? != 0 ] && exit 1
+    eval set -- "$parameters"
+    while true; do
+        case "$1" in
+        -h)
+            usage
+            exit 0
+            ;;
+        -y)
+            flag=1
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+        esac
+    done
+
+    if [ $# -lt 1 ]; then
+        usage
+        exit 1
+    else
+        get_task $1
+        batch_switch_branch
+        exit 0
+    fi
+}
+
+main "$@"

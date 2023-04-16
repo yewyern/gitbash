@@ -32,8 +32,6 @@ function switch_branch_with_project() {
     else
         git_switch_branch $target_br --fetch_before --pull_after --stash prompt
     fi
-    success_log "-----------------------"
-    success_log
 }
 
 function batch_switch_branch() {
@@ -49,6 +47,8 @@ function batch_switch_branch() {
             fi
         fi
         switch_branch_with_project $work_dir"/"$project $task_branch
+        success_log "-----------------------"
+        success_log
     done
 }
 
