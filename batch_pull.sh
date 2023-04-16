@@ -6,14 +6,16 @@
 # @date: 2020-12-08
 
 bash_dir=$(dirname "$0")
-#base_dir=$(pwd)
+base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
 
 flag=0
+projects=()
+work_dir=$base_dir
 
 function usage() {
-    echo 1
+    cat "$bash_dir/usage/batch_pull.usage"
 }
 
 function pull_with_project() {
@@ -35,10 +37,9 @@ function pull_with_project() {
 }
 
 function batch_pull() {
-    work_dir=${task_info["work_dir"]}
-    for i in "${!task_projects[@]}";
+    for i in "${!projects[@]}";
     do
-        project=${task_projects[$i]}
+        project=${projects[$i]}
         pull_with_project "$work_dir/$project"
         success_log "-----------------------"
         success_log
@@ -60,13 +61,14 @@ function main() {
     done
 
     if [ $# -lt 1 ]; then
-        usage
-        exit 1
+        projects=($(get_directories))
     else
         get_task $1
-        batch_pull
-        exit 0
+        work_dir=${task_info["work_dir"]}
+        projects=(${task_projects[*]})
     fi
+    batch_pull
+    exit 0
 }
 
 main "$@"

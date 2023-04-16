@@ -26,7 +26,13 @@ function git_branch_type() {
 
 # 确认当前分支类型，如果是远程分支，推送到远程
 function git_status_ok() {
+    git status
+    if [ $? != $SUCCESS ]; then
+        error_log "** 非git仓库"
+        return $FAILED
+    fi
     if [[ -n "$(git status --porcelain)" ]]; then
+        error_log "** 有内容修改未提交"
         return $FAILED
     fi
     return $SUCCESS
@@ -63,7 +69,7 @@ function git_get_remote() {
 function git_pull() {
     git_status_ok
     if [ $? == $FAILED ]; then
-        error_log "** 有内容修改未提交，无法更新远程分支到本地"
+        error_log "** 无法更新远程分支到本地"
         return $FAILED
     fi
     curr_branch=$(git_current_branch)
@@ -71,9 +77,12 @@ function git_pull() {
     if [ $branch_type == 2 ]; then
         # 更新远程分支到本地
         git pull --rebase
-        return $?
+        if [ $? != $SUCCESS ]; then
+            error_log "** 更新远程仓库到本地失败"
+            return $FAILED
+        fi
     fi
-    return 0
+    return $SUCCESS
 }
 
 # 确认当前分支类型，如果是远程分支，推送到远程
