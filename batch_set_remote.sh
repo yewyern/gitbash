@@ -15,7 +15,7 @@ work_dir=
 projects=()
 
 function usage() {
-    cat "$bash_dir/usage/new_workspace.usage"
+    cat "$bash_dir/usage/batch_set_remote.usage"
 }
 
 function set_remote_with_project() {
@@ -43,7 +43,7 @@ function batch_set_remote() {
     for i in "${!projects[@]}"; do
         project=${projects[$i]}
         success_log "当前项目："$project
-        set_remote_with_project $project
+        set_remote_with_project "$work_dir/$project"
         success_log "-----------------------"
         success_log
     done
@@ -104,11 +104,7 @@ function main() {
 
     remote_file=`realpath "$remote_file"`
     work_dir=`realpath "$work_dir"`
-
-    if [ $task_mode != 1 ]; then
-        # 非任务模式
-        projects=($(get_value_by_index $remote_file 0))
-    fi
+    projects=($(get_value_by_index $remote_file 0))
 
     batch_set_remote
     exit 0

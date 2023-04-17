@@ -1,8 +1,6 @@
-Usage: new_workspace.sh <task_id> [-h] [-y] [-n] [-t] [-r <remote_file>] [-w <work_dir>] [--remote-file <remote_file>] [--work-dir <work_dir>]
+Usage: batch_set_remote.sh <task_id> [-h] [-y] [-r <remote_file>] [-w <work_dir>] [--remote-file <remote_file>] [--work-dir <work_dir>]
     -h                  显示帮助文档
     -y                  直接切换，无需确认
-    -t                  任务模式，默认模式
-    -n                  普通模式，需要指定-w参数
     -r --remote-file    指定git远程配置文件
                         remote_file可以是相对路径，也可以是绝对路径
                         当找不到时，会在脚本文件下config目录进行寻找
@@ -11,11 +9,9 @@ Usage: new_workspace.sh <task_id> [-h] [-y] [-n] [-t] [-r <remote_file>] [-w <wo
 
 
     注意：需在config/remote.txt中配置项目对应的远程url
-    task_id 可以通过 `task_manage.sh show` 查看
-
-example: new_workspace.sh 1 -y
+example: batch_set_remote.sh -y
     根据task_id=1的任务配置，创建work_dir目录，并拉取该任务的所有项目，并切换到开发分支，无需确认
 
-example: new_workspace.sh -n -r remote1.txt -w work1
-    在当前路径下创建work1，并拉取remote1.txt中的所有项目
+example: batch_set_remote.sh -r remote1.txt -w work1
+    在当前路径下work1目录中，根据remote1.txt设置相关项目的远程url
 
