@@ -1,0 +1,16 @@
+Usage: batch_new_branch.sh <task_id> [-h] [-y] [-b <branch>] [-f <from_branch>]
+                       [--to_branch <to_branch>] [--from_branch <from_branch>]
+    -h                  显示帮助文档
+    -y                  直接切换，无需确认
+    -b                  要创建的目标分支，默认使用任务分支
+    -f --from-branch    要合并到的源分支，不指定则默认使用master
+
+    task_id 可以通过 `task_manage.sh show` 查看
+
+example: batch_new_branch.sh 1
+    批量为task_id为1的所有项目的创建任务开发分支，以master为基
+example: batch_new_branch.sh 1 -b branch1
+    批量为task_id为1的所有项目的创建分支branch1，以master为基
+example: batch_new_branch.sh 1 -b branch1 -f branch2
+    批量为task_id为1的所有项目的创建分支branch1，以branch2为基
+

@@ -57,7 +57,9 @@ function add_project() {
         fi
         success_log "当前目录：$(pwd)"
         git clone "$remote_url"
+        return $?
     fi
+    success_log "已存在项目，不拉取"
 }
 
 function new_workspace() {
@@ -70,7 +72,7 @@ function new_workspace() {
         project=${projects[$i]}
         success_log "当前项目："$project
         add_project $project
-        [ "$task_branch" != '' ] && switch_branch_with_project "$work_dir/$project" "$task_branch"
+        [[ $? == $SUCCESS && "$task_branch" != '' ]] && switch_branch_with_project "$work_dir/$project" "$task_branch"
         success_log "-----------------------"
         success_log
     done

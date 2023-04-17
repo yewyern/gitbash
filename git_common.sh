@@ -312,31 +312,32 @@ function git_create_branch() {
     success_log "目标分支：$create_target_branch"
     # 分支为空，不创建
     if [[ -z "$create_source_branch" ]]; then
-        success_log "源分支为空，不创建"
+        error_log "** 源分支为空，不创建"
         return $FAILED
     fi
     if [[ -z "$create_target_branch" ]]; then
-        success_log "目标分支为空，不创建"
+        error_log "** 目标分支为空，不创建"
         return $FAILED
     fi
     # 如果分支一样的无需创建
     if [ "$create_source_branch" == "$create_target_branch" ]; then
-        success_log "分支相同无需创建"
+        error_log "** 分支相同无需创建"
+        return $FAILED
+    fi
+
+    # 如果分支存在，不创建
+    branch_type=$(git_branch_type "$create_target_branch")
+    if [[ $branch_type != 0 ]]; then
+        success_log "分支已存在，不需要创建"
         return $SUCCESS
     fi
 
     # 判断是否存在未提交的文件
     if [[ $create_prompt == 1 ]]; then
-        get_continue "是否进行合并？(y/n)"
+        get_continue "是否进行创建？(y/n)"
         if [ $? == $FAILED ]; then
             return $SUCCESS
         fi
-    fi
-
-    branch_type=$(git_branch_type "$create_target_branch")
-    if [[ $branch_type != 0 ]]; then
-        error_log "** 分支已存在，不需要创建"
-        return $FAILED
     fi
 
     # 切换到源分支
