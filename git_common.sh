@@ -239,16 +239,16 @@ function git_merge_branch() {
     # 分支为空，不合并
     if [[ -z "$merge_source_branch" ]]; then
         success_log "源分支为空，不合并"
-        return 1
+        return $FAILED
     fi
     if [[ -z "$merge_target_branch" ]]; then
         success_log "目标分支为空，不合并"
-        return 1
+        return $FAILED
     fi
     # 如果分支一样的无需合并
     if [ "$merge_source_branch" == "$merge_target_branch" ]; then
         success_log "分支相同无需合并"
-        return 1
+        return $FAILED
     fi
 
     # 判断是否存在未提交的文件
@@ -287,4 +287,94 @@ function git_merge_branch() {
     # 推送到远程
     git_push
     return $?
+}
+
+
+# 合并分支
+# git_create_branch <create_source_branch> <create_target_branch> [-y]
+function git_create_branch() {
+    # 解析参数
+    params=`getopt -o yYp -n "$0" -- "$@"`
+    [ $? != 0 ] && return $FAILED
+    eval set -- "$params"
+    create_prompt=1
+    while true ; do
+        case "$1" in
+            -y|-Y) create_prompt=0; shift ;;
+            --) shift; break ;;
+            *) return $FAILED ;;
+        esac
+    done
+
+    create_source_branch=$1
+    create_target_branch=$2
+    success_log "源分支：$create_source_branch"
+    success_log "目标分支：$create_target_branch"
+    # 分支为空，不创建
+    if [[ -z "$create_source_branch" ]]; then
+        success_log "源分支为空，不创建"
+        return $FAILED
+    fi
+    if [[ -z "$create_target_branch" ]]; then
+        success_log "目标分支为空，不创建"
+        return $FAILED
+    fi
+    # 如果分支一样的无需创建
+    if [ "$create_source_branch" == "$create_target_branch" ]; then
+        success_log "分支相同无需创建"
+        return $SUCCESS
+    fi
+
+    # 判断是否存在未提交的文件
+    if [[ $create_prompt == 1 ]]; then
+        get_continue "是否进行合并？(y/n)"
+        if [ $? == $FAILED ]; then
+            return $SUCCESS
+        fi
+    fi
+
+    branch_type=$(git_branch_type "$create_target_branch")
+    if [[ $branch_type != 0 ]]; then
+        error_log "** 分支已存在，不需要创建"
+        return $FAILED
+    fi
+
+    # 切换到源分支
+    git_switch_branch $create_source_branch -y --fetch_before --pull_after
+    if [ $? == $FAILED ]; then
+        return $FAILED
+    fi
+
+    # 创建目标分支
+    git checkout -b $create_target_branch
+
+    # 判断是否创建成功
+    curr_branch=$(git_current_branch)
+    if [ "$curr_branch" != "$create_target_branch" ]; then
+        error_log "分支创建失败，请手工处理"
+        return $FAILED
+    fi
+    project=$(basename "$(pwd)")
+    success_log "基于$project 分支 $create_source_branch 创建 $create_target_branch 成功"
+
+    # 判断是否要推送远程
+    remote_url=`git_get_remote`
+    if [ "$curr_branch" == "" ]; then
+        # 不存在远程url，不推送
+        return $SUCCESS
+    fi
+    if [[ $create_prompt == 1 ]]; then
+        get_continue "是否推送远程？(y/n)"
+        if [ $? == $FAILED ]; then
+            return $SUCCESS
+        fi
+    fi
+    # 推送到远程
+    git_push
+    if [ $? == 0 ]; then
+        success_log "已推送分支 $curr_branch 到远程"
+        return $SUCCESS
+    fi
+    error_log "推送分支 $curr_branch 到远程失败"
+    return $FAILED
 }
