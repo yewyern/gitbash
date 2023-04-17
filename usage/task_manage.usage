@@ -1,0 +1,7 @@
+Usage: task_manage.sh <command> [<args>]
+The task manage commands:
+    show                        show all tasks(exclude deleted)
+    show <task_id>              show the task by id
+    del  <task_id>              delete the task by id
+
+
