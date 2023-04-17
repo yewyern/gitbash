@@ -51,7 +51,3 @@ if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
 fi
 ```
 
-## 项目配置
-
-1. 修改config_demo文件夹为config文件夹
-2. 修改config_demo文件夹为config文件夹
