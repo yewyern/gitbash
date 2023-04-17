@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
-# 一键切换分支
+# 批量设置远程url，git迁移时使用
 # @author: 徐宙
 # @date: 2020-12-08
 
