@@ -10,9 +10,9 @@ bash_dir=$(dirname "$0")
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
 
-remote_file="remote.txt"
 task_mode=1
 flag=0
+remote_file=
 work_dir=
 task_branch=
 
@@ -113,6 +113,35 @@ function main() {
         esac
     done
 
+    if [ $task_mode == 1 ]; then
+        # 使用任务模式
+        if [ $# -lt 1 ]; then
+            usage
+            exit 1
+        fi
+        get_task $1
+        if [ "$work_dir" == '' ]; then
+            work_dir=${task_info["work_dir"]}
+        fi
+        if [ "$remote_file" == '' ]; then
+            remote_file=${task_info["remote_file"]}
+        fi
+        task_branch=${task_info["task_branch"]}
+        projects=(${task_projects[*]})
+    fi
+    if [ "$work_dir" == '' ]; then
+        usage
+        exit 1
+    fi
+    # remote_file 默认使用remote.txt
+    if [ "$remote_file" == '' ]; then
+        remote_file="remote.txt"
+    fi
+    if [ $task_mode != 1 ]; then
+        # 非任务模式
+        projects=(${task_projects[*]})
+    fi
+
     if [ ! -f "$remote_file" ]; then
         # 如果找不到配置文件，在脚本路径下寻找
         if [ ! -f "$bash_dir/config/$remote_file" ]; then
@@ -124,26 +153,6 @@ function main() {
         remote_file="$bash_dir/config/$remote_file"
     fi
 
-    if [ $task_mode == 0 ]; then
-        # 非任务模式
-        if [ "$work_dir" == '' ]; then
-            usage
-            exit 1
-        fi
-    fi
-
-    if [ $task_mode == 1 ]; then
-        # 使用任务模式
-        if [ $# -lt 1 ]; then
-            usage
-            exit 1
-        fi
-        get_task $1
-        if [ "$work_dir" == '' ]; then
-            work_dir=${task_info["work_dir"]}
-        fi
-        task_branch=${task_info["task_branch"]}
-    fi
     work_dir=`realpath "$work_dir"`
     new_workspace
     exit 0

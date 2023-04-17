@@ -36,13 +36,14 @@ function get_directories() {
 }
 
 # get_value_by_key <filename> <key> <key_index> <value_index>
+# key_index,value_index 从0开始
 function get_value_by_key() {
     filename=$1
     key=$2
     key_index=$3
     value_index=$4
     # grep 出符合条件的多行数据
-    lines=$(grep "$key" $filename)
+    lines=$(grep "$key" $filename | grep -v '^#')
     # 遍历进行匹配
     for i in "${!lines[@]}"; do
         line=${lines[$i]}
@@ -57,4 +58,16 @@ function get_value_by_key() {
         fi
     done
     return $FAILED
+}
+
+# get_value_by_index <filename> <value_index>
+# value_index 从0开始
+function get_value_by_index() {
+    filename=$1
+    value_index=$4
+    OLD_IFS=$IFS
+    IFS=$'\n'
+    lines=(`grep -v '^#' $filename | awk '{print $1}'`)
+    IFS=$OLD_IFS
+    echo "${lines[@]}"
 }
