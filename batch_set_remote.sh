@@ -19,6 +19,13 @@ function usage() {
 }
 
 function set_remote_with_project() {
+    if [ $flag == 0 ]; then
+        get_continue "是否进行修改远程url？(y/n)"
+        toContinue=$?
+        if [ $toContinue == $FAILED ]; then
+            return $SUCCESS
+        fi
+    fi
     project_dir=$1
     target_br=$2
     # 打开文件夹
