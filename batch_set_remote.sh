@@ -5,56 +5,113 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
-function success_log() {
-    echo -e "\033[32m $* \033[0m"
+bash_dir=$(dirname "$0")
+#base_dir=$(pwd)
+source "$bash_dir/git_common.sh"
+
+flag=0
+remote_file=
+work_dir=
+projects=()
+
+function usage() {
+    cat "$bash_dir/usage/new_workspace.usage"
 }
 
-function error_log() {
-    echo -e "\033[31m $* \033[0m"
-}
-
-function setRemoteUrl() {
-    git remote set-url origin $target_br
-    return 1
-}
-
-if [ $# -lt 1 ]; then
-    error_log "Usage: cb.sh filename"
-    error_log "example: cb.sh brach_list.txt"
-    error_log "brach_list.txt like this: "
-    error_log "test1	dev"
-    error_log "test2	dev"
-    exit 1
-fi
-
-filename=$1
-# 取当前目录
-base_dir=`pwd`
-# 遍历文件，每次处理一行
-while read line || [[ -n $line ]]; do
-    line=`echo $line | tr --delete '\n'`
-    line=`echo $line | tr --delete '\r'`
-    # 跳过以"#"号开头的行，可以注释某些行，更灵活
-    if [[ -z "$line" ]] || [[ ${line:0:1} == "#" ]]; then
-        continue
-    fi
-    success_log
-    success_log "当前行：$line"
-    # 根据空格或tab分割字符串
-    arr=($line)
-    # 第一个是项目
-    project=${arr[0]}
-    # 目标分支
-    target_br=${arr[1]}
-    if [ ! -d "$base_dir/$project" ];then
-        cd $base_dir
-        success_log "当前目录：`pwd`"
-        git clone $target_br
-    fi
+function set_remote_with_project() {
+    project_dir=$1
+    target_br=$2
     # 打开文件夹
-    cd $base_dir/$project
-    success_log "当前目录：`pwd`"
-    # 切换分支
-    setRemoteUrl $target_br
-    success_log "-----------------------"
-done < $filename
+    cd "$project_dir" || return $FAILED
+    curr_dir=$(pwd)
+    success_log "当前目录：$curr_dir"
+    # 目标项目git url
+    remote_url=$(get_value_by_key "$remote_file" "$project" 0 1)
+    if [[ -z "$remote_url" ]]; then
+        error_log "未找到项目远程地址，请确认$remote_file 是否正确！"
+        return $FAILED
+    fi
+    git_set_remote $remote_url
+}
+
+function batch_set_remote() {
+    if [ ! -d "$work_dir" ]; then
+        error_log "工作目录：$work_dir 不存在，请确认！"
+        exit $FAILED
+    fi
+    cd "$work_dir" || exit
+    for i in "${!projects[@]}"; do
+        project=${projects[$i]}
+        success_log "当前项目："$project
+        set_remote_with_project $project
+        success_log "-----------------------"
+        success_log
+    done
+}
+
+function main() {
+    # 解析参数
+    params=`getopt -o hyr:w: --long remote-file:,work-dir: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true; do
+        case "$1" in
+        -h)
+            usage
+            exit 0
+            ;;
+        -y)
+            flag=1
+            shift
+            ;;
+        -r | --remote-file)
+            remote_file=$2
+            shift 2
+            ;;
+        -w | --work-dir)
+            work_dir=$2
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+        esac
+    done
+
+    if [ "$work_dir" == '' ]; then
+        usage
+        exit 1
+    fi
+    # remote_file 默认使用remote.txt
+    if [ "$remote_file" == '' ]; then
+        remote_file="remote.txt"
+    fi
+    if [ ! -f "$remote_file" ]; then
+        # 如果找不到配置文件，在脚本路径下寻找
+        if [ ! -f "$bash_dir/config/$remote_file" ]; then
+            # 还找不到，报错
+            error_log "未找到对应的远程配置文件：$remote_file"
+            usage
+            exit 1
+        fi
+        remote_file="$bash_dir/config/$remote_file"
+    fi
+
+    remote_file=`realpath "$remote_file"`
+    work_dir=`realpath "$work_dir"`
+
+    if [ $task_mode != 1 ]; then
+        # 非任务模式
+        projects=($(get_value_by_index $remote_file 0))
+    fi
+
+    batch_set_remote
+    exit 0
+}
+
+main "$@"

@@ -68,7 +68,7 @@ function new_workspace() {
     cd "$work_dir" || exit
     for i in "${!projects[@]}"; do
         project=${projects[$i]}
-        echo $project
+        success_log "当前项目："$project
         add_project $project
         [ "$task_branch" != '' ] && switch_branch_with_project "$work_dir/$project" "$task_branch"
         success_log "-----------------------"
