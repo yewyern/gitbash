@@ -15,6 +15,7 @@ flag=0
 remote_file=
 work_dir=
 task_branch=
+projects=()
 
 function usage() {
     cat "$bash_dir/usage/new_workspace.usage"
@@ -65,8 +66,8 @@ function new_workspace() {
         mkdir -p "$work_dir"
     fi
     cd "$work_dir" || exit
-    for i in "${!task_projects[@]}"; do
-        project=${task_projects[$i]}
+    for i in "${!projects[@]}"; do
+        project=${projects[$i]}
         echo $project
         add_project $project
         [ "$task_branch" != '' ] && switch_branch_with_project "$work_dir/$project" "$task_branch"
@@ -137,11 +138,6 @@ function main() {
     if [ "$remote_file" == '' ]; then
         remote_file="remote.txt"
     fi
-    if [ $task_mode != 1 ]; then
-        # 非任务模式
-        projects=(${task_projects[*]})
-    fi
-
     if [ ! -f "$remote_file" ]; then
         # 如果找不到配置文件，在脚本路径下寻找
         if [ ! -f "$bash_dir/config/$remote_file" ]; then
@@ -153,7 +149,14 @@ function main() {
         remote_file="$bash_dir/config/$remote_file"
     fi
 
+    remote_file=`realpath "$remote_file"`
     work_dir=`realpath "$work_dir"`
+
+    if [ $task_mode != 1 ]; then
+        # 非任务模式
+        projects=($(get_value_by_index $remote_file 0))
+    fi
+
     new_workspace
     exit 0
 }

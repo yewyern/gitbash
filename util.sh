@@ -64,10 +64,10 @@ function get_value_by_key() {
 # value_index 从0开始
 function get_value_by_index() {
     filename=$1
-    value_index=$4
+    value_index=$2
     OLD_IFS=$IFS
     IFS=$'\n'
-    lines=(`grep -v '^#' $filename | awk '{print $1}'`)
+    lines=(`grep -v '^#' $filename | awk -v N1="$(($value_index + 1))" '{print $N1}'`)
     IFS=$OLD_IFS
     echo "${lines[@]}"
 }

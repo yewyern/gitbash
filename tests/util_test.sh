@@ -7,6 +7,7 @@ function test_get_value_by_key() {
 }
 
 function test_get_value_by_index() {
+    get_value_by_index $bash_dir"/../config/remote.txt" 0
     get_value_by_index $bash_dir"/../config/remote.txt" 1
 }
 
