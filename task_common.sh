@@ -66,6 +66,7 @@ function add_task() {
                 val=$val1
             fi
             task_info["$key"]="$val"
+            success_log
         done
     fi
     # 生成id
