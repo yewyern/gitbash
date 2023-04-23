@@ -7,19 +7,13 @@
 
 bash_dir=$(dirname "$0")
 #base_dir=$(pwd)
-source "$bash_dir/config/maven.config"
-source "$bash_dir/git_common.sh"
-source "$bash_dir/task_common.sh"
-source "$bash_dir/extend/maven_extend.sh"
-
 flag=0
 deploy_mode=0
 work_dir=
-task_branch=
+work_branch=
 env=
 branch_env_file=
 maven_setting_env_file=
-multiModuleProjectDirectory=
 maven_deploy_type=
 group_id=
 artifact_id=
@@ -29,33 +23,64 @@ artifact_pom_file=
 repository_url=
 repository_id=
 
+source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
+source "$bash_dir/extend/maven_extend.sh"
+source "$bash_dir/config/maven.config"
+
 function usage() {
     cat "$bash_dir/usage/maven_batch_deploy.usage"
+}
+
+function execute_maven_goals() {
+    multiModuleProjectDirectory=$(basename "$(pwd)")
+    "$JAVA_CMD_PATH" -classpath "$MAVEN_HOME/$MAVEN_CLASSPATH" \
+            -Dclassworlds.conf=$MAVEN_HOME/bin/m2.conf \
+            -Dmaven.home=$MAVEN_HOME \
+            -Dmaven.multiModuleProjectDirectory=$multiModuleProjectDirectory \
+            $MAVEN_MAIN_CLASS \
+            -s "$maven_setting_env_file" \
+            $@
+}
+
+function set_maven_info() {
+    group_id=$1
+    artifact_id=$2
+    artifact_version=$3
+    maven_deploy_type=$4
+    if [ "$maven_deploy_type" == "jar" ]; then
+        maven_deploy_type=jar_and_pom
+    fi
+}
+
+function get_maven_info() {
+    tmp_file=get_maven_info_temp.xml
+    execute_maven_goals dependency:list -N -o | grep -C 1 "Building" > $tmp_file
+    maven_info=`sed -n '1p' $tmp_file | cut -d ' ' -f3 | awk -F: '{print $1,$2}'`
+    maven_info="$maven_info "`sed -n '2p' $tmp_file | cut -d ' ' -f4`
+    maven_info="$maven_info "`sed -n '3p' $tmp_file | cut -d ' ' -f3`
+    set_maven_info $maven_info
+    rm -f $tmp_file
 }
 
 function maven_package() {
     if [[ $flag == 0 ]]; then
         get_continue "是否需要编译？(y/n)"
-        if [ $? = $FAIL ]; then
+        if [ $? != $SUCCESS ]; then
             # 跳过编译
             return $SUCCESS
         fi
     fi
     # maven 编译
-    success_log "开始编译: "$multiModuleProjectDirectory
-    "$JAVA_CMD_PATH" -classpath "$MAVEN_HOME/$MAVEN_CLASSPATH" \
-        -Dclassworlds.conf=$MAVEN_HOME/bin/m2.conf \
-        -Dmaven.home=$MAVEN_HOME \
-        -Dmaven.multiModuleProjectDirectory=$multiModuleProjectDirectory \
-        $MAVEN_MAIN_CLASS \
-        -s "$maven_setting_env_file" \
-        --update-snapshots clean -DskipTests package
-    if [ $? = $SUCCESS ]; then
+    get_maven_info
+    success_log "开始编译: ["$group_id":"$artifact_id":"$artifact_version"]"
+    execute_maven_goals --update-snapshots -N -o clean -DskipTests package
+    if [ $? != $SUCCESS ]; then
+        error_log "编译失败"
+        return $FAILED
+    else
         success_log "编译成功"
         return $SUCCESS
-    else
-        error_log "编译失败"
-        return $FAIL
     fi
 }
 
@@ -73,22 +98,15 @@ function maven_deploy_default() {
         exit 1
     fi
     maven_deploy_args="$maven_deploy_args -Durl=$repository_url -DrepositoryId=$repository_id"
-    "$JAVA_CMD_PATH" -classpath "$MAVEN_HOME/$MAVEN_CLASSPATH" \
-        -Dclassworlds.conf=$MAVEN_HOME/bin/m2.conf \
-        -Dmaven.home=$MAVEN_HOME \
-        -Dmaven.multiModuleProjectDirectory=$multiModuleProjectDirectory \
-        $MAVEN_MAIN_CLASS \
-        -s "$maven_setting_env_file" \
-        deploy:deploy-file \
-        $maven_deploy_args
+    execute_maven_goals deploy:deploy-file $maven_deploy_args -N -o
     return $?
 }
 
 function maven_deploy() {
     if [[ $flag == 0 ]]; then
         get_continue "是否需要发布？(y/n)"
-        if [ $? = $FAIL ]; then
-            # 跳过编译
+        if [ $? != $SUCCESS ]; then
+            # 跳过发布
             return $SUCCESS
         fi
     fi
@@ -99,28 +117,26 @@ function maven_deploy() {
         # 可用于扩展
         maven_deploy_extend
     fi
-    if [ $? = $SUCCESS ]; then
+    if [ $? != $SUCCESS ]; then
         success_log "发布失败"
         return $SUCCESS
     else
         error_log "发布失败"
-        return $FAIL
+        return $FAILED
     fi
 }
 
 function maven_deploy_with_project() {
-    multiModuleProjectDirectory=$1
     maven_package
+    if [ $? != $SUCCESS ]; then
+        return $FAILED
+    fi
     maven_deploy
 }
 
 function switch_branch_with_project() {
     project=$1
     target_br=$2
-    # 打开文件夹
-    cd "$work_dir/$project_dir" || exit
-    curr_dir=$(pwd)
-    success_log "当前目录：$curr_dir"
     # 切换分支
     if [ $flag == 1 ]; then
         git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
@@ -133,15 +149,26 @@ function batch_deploy_maven() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        if [[ $task_branch == '' ]]; then
-            task_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
-            if [ $task_branch == '' ]; then
+        if [[ "$work_branch" == "" ]]; then
+            work_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
+            if [ "$work_branch" == "" ]; then
                 error_log "要编译的分支不能为空"
                 exit 1
             fi
         fi
+        # 打开文件夹
+        cd "$work_dir/$project" || exit
+        curr_dir=$(pwd)
+        success_log "当前目录：$curr_dir"
+        if [[ $flag == 0 ]]; then
+            get_continue "是否需要发布？(y/n)"
+            if [ $? != $SUCCESS ]; then
+                # 跳过发布
+                continue
+            fi
+        fi
         # 切换到目标分支
-        switch_branch_with_project $project $task_branch
+        switch_branch_with_project $project $work_branch
         # maven编译
         maven_deploy_with_project $project
         success_log "-----------------------"
@@ -162,7 +189,7 @@ function main() {
         case "$1" in
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
-            -b) task_branch=$2; shift 2 ;;
+            -b) work_branch=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac
@@ -174,12 +201,9 @@ function main() {
     else
         env=$2
         branch_env_file="$bash_dir/config/branch_$env.txt";
-        maven_setting_env_file="$bash_dir/config/settings_$env.xml";
+        maven_setting_env_file="$bash_dir/config/settings-$env.xml";
         get_task $1
         work_dir=${task_info["work_dir"]}
-        if [[ $task_branch == '' ]]; then
-            task_branch=${task_info["task_branch"]}
-        fi
         batch_deploy_maven
         exit 0
     fi

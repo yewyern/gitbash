@@ -14,6 +14,8 @@
 # artifact_pom_file                         pom文件绝对路径
 # repository_url                            私服上仓库的位置，打开nexus——>repositories菜单，可以看到该路径。
 # repository_id                             服务器的id，在nexus的configuration可以看到。
+
+# 注意在本shell自定义的方法不能与git_common.sh, task_common.sh, maven_batch_deploy.sh中的相同
 function maven_deploy_extend() {
     if [ $deploy_mode == 1 ]; then
         maven_deploy_with_http
@@ -24,4 +26,5 @@ function maven_deploy_with_http() {
     # 发布jar包
     # 发布pom
     # 发布maven
+    echo "使用http发布maven成功"
 }
