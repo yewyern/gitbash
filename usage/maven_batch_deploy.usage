@@ -7,9 +7,9 @@ Usage: maven_batch_deploy.sh <task_id> <env> [-h] [-y] [-b <branch>]
     env     要编译发布的环境
 
 example: maven_batch_deploy.sh 1 dev -y
-    批量合并task_id为1的所有项目到sit分支，无需确认
+    批量编译task_id为1的所有项目的开发分支，并发布到开发环境的maven私服
 example: maven_batch_deploy.sh 1 sit
-    批量合并task_id为1的所有项目的开发分支到branch1，需要确认
-example: maven_batch_deploy.sh 1 -t branch1 -f branch2
-    批量合并task_id为1的所有项目的 branch2 到 branch1，需要确认
+    批量编译task_id为1的所有项目的测试分支，并发布到测试环境的maven私服
+example: maven_batch_deploy.sh 1 release -b branch1
+    批量编译task_id为1的所有项目的指定分支branch1，并发布到release环境的maven私服
 

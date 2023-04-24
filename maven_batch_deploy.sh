@@ -72,7 +72,6 @@ function maven_package() {
         fi
     fi
     # maven 编译
-    get_maven_info
     success_log "开始编译: ["$group_id":"$artifact_id":"$artifact_version"]"
     execute_maven_goals --update-snapshots -N -o clean -DskipTests package
     if [ $? != $SUCCESS ]; then
@@ -127,6 +126,11 @@ function maven_deploy() {
 }
 
 function maven_deploy_with_project() {
+
+    for (( i = 0; i < n; i++ )); do
+
+    done
+    get_maven_info
     maven_package
     if [ $? != $SUCCESS ]; then
         return $FAILED

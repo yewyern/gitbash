@@ -8,10 +8,10 @@
 bash_dir=$(dirname "$0")
 #base_dir=$(pwd)
 
-source "$bash_dir/util.sh"
-source "$bash_dir/config/maven.config"
+source $bash_dir"/../util.sh"
+source "$bash_dir/../config/maven.config"
 maven_info=
-maven_setting_env_file="$bash_dir/config/settings-dev.xml";
+maven_setting_env_file="$bash_dir/../config/settings-dev.xml";
 pom_file=pom.xml
 tmp_file=get_maven_info_temp.xml
 
@@ -31,10 +31,8 @@ function confirm_value() {
     echo "请确认$1($val):"
     read val
     if [ "$val" != "" ]; then
-        set "$1" "$val"
+        declare -g $1="$val"
     fi
-    val=${!ref}
-    echo $val
 }
 
 function confirm_maven_info() {
@@ -49,7 +47,7 @@ function get_maven_info() {
     maven_info="$maven_info "`sed -n '2p' $tmp_file | cut -d ' ' -f4`
     maven_info="$maven_info "`sed -n '3p' $tmp_file | cut -d ' ' -f3`
     echo $maven_info
-    confirm_maven_info
+#    confirm_maven_info
     echo $maven_info
 #    grep "<>" $tmp_file | cut -d ' ' -f4
 #    grep -A 1 "<" temp.log | grep -A 1 ">"
