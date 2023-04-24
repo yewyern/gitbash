@@ -43,24 +43,14 @@ function execute_maven_goals() {
             $@
 }
 
-function set_maven_info() {
-    group_id=$1
-    artifact_id=$2
-    artifact_version=$3
-    maven_deploy_type=$4
+function get_maven_info() {
+    group_id=`execute_maven_goals org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.groupId | grep -v "\["`
+    artifact_id=`execute_maven_goals org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.artifactId | grep -v "\["`
+    artifact_version=`execute_maven_goals org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -v "\["`
+    maven_deploy_type=`execute_maven_goals org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.packaging | grep -v "\["`
     if [ "$maven_deploy_type" == "jar" ]; then
         maven_deploy_type=jar_and_pom
     fi
-}
-
-function get_maven_info() {
-    tmp_file=get_maven_info_temp.xml
-    execute_maven_goals dependency:list -N -o | grep -C 1 "Building" > $tmp_file
-    maven_info=`sed -n '1p' $tmp_file | cut -d ' ' -f3 | awk -F: '{print $1,$2}'`
-    maven_info="$maven_info "`sed -n '2p' $tmp_file | cut -d ' ' -f4`
-    maven_info="$maven_info "`sed -n '3p' $tmp_file | cut -d ' ' -f3`
-    set_maven_info $maven_info
-    rm -f $tmp_file
 }
 
 function maven_package() {
@@ -126,10 +116,13 @@ function maven_deploy() {
 }
 
 function maven_deploy_with_project() {
-
-    for (( i = 0; i < n; i++ )); do
-
-    done
+    # 查看当前目录下所有包含pom.xml的文件夹名
+    # - `find "$(pwd)" -name "pom.xml"`：查找包含pom.xml的文件；
+    # - `-printf '%h\n'`：将文件路径去掉文件名，只输出文件夹路径；
+    # - `sort -u`：去重并按照字典序排序。
+    maven_artifact_dirs=("`find "$(pwd)" -name "pom.xml" -printf '%h\n' | sort -u`")
+    echo $maven_artifact_dirs
+    return $SUCCESS
     get_maven_info
     maven_package
     if [ $? != $SUCCESS ]; then
