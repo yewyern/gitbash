@@ -120,15 +120,19 @@ function maven_deploy_with_project() {
     # - `find "$(pwd)" -name "pom.xml"`：查找包含pom.xml的文件；
     # - `-printf '%h\n'`：将文件路径去掉文件名，只输出文件夹路径；
     # - `sort -u`：去重并按照字典序排序。
-    maven_artifact_dirs=("`find "$(pwd)" -name "pom.xml" -printf '%h\n' | sort -u`")
-    echo $maven_artifact_dirs
+    maven_artifact_dirs=(`find "$(pwd)" -name "pom.xml" -printf '%h\n' | sort -u`)
+    for i in "${!maven_artifact_dirs[@]}";
+    do
+        maven_artifact_dir=${maven_artifact_dirs[$i]}
+        cd $maven_artifact_dir
+        get_maven_info
+        maven_package
+        if [ $? != $SUCCESS ]; then
+            return $FAILED
+        fi
+        maven_deploy
+    done
     return $SUCCESS
-    get_maven_info
-    maven_package
-    if [ $? != $SUCCESS ]; then
-        return $FAILED
-    fi
-    maven_deploy
 }
 
 function switch_branch_with_project() {
