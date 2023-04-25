@@ -169,12 +169,10 @@ function batch_deploy_maven() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        if [[ "$work_branch" == "" ]]; then
-            work_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
-            if [ "$work_branch" == "" ]; then
-                error_log "要编译的分支不能为空"
-                exit 1
-            fi
+        work_branch=${work_branch:-$(get_value_by_key "$branch_env_file" "$project" 0 1)}
+        if [ -z "$work_branch" ]; then
+            error_log "要编译的分支不能为空"
+            exit 1
         fi
         # 打开文件夹
         cd "$work_dir/$project" || exit
@@ -195,6 +193,7 @@ function batch_deploy_maven() {
         success_log
     done
 }
+
 
 function main() {
     # 解析参数
