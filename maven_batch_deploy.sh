@@ -198,18 +198,25 @@ function batch_deploy_maven() {
 
 function main() {
     # 解析参数
-    parameters=`getopt -o hyb: -n "$0" -- "$@"`
-    [ $? != 0 ] && exit 1
-    eval set -- "$parameters"
-    while true ; do
-        case "$1" in
-            -h) usage; exit 0 ;;
-            -y) flag=1; shift ;;
-            -b) work_branch=$2; shift 2 ;;
-            --) shift; break ;;
-            *) usage; exit 1 ;;
+    while getopts "hyb:" opt; do
+        case $opt in
+            h)
+                usage
+                exit 0
+                ;;
+            y)
+                flag=1
+                ;;
+            b)
+                work_branch=$OPTARG
+                ;;
+            \?)
+                usage
+                exit 1
+                ;;
         esac
     done
+    shift $((OPTIND-1))
 
     if [ $# -lt 2 ]; then
         usage
@@ -224,5 +231,6 @@ function main() {
         exit 0
     fi
 }
+
 
 main "$@"
