@@ -78,6 +78,19 @@ function git_get_remote() {
 
 # 确认当前分支类型，如果是远程分支，拉取远程分支
 function git_pull() {
+    params=`getopt -o yY --long rebase -n "$0" -- "$@"`
+    [ $? != $SUCCESS ] && return $FAILED
+    eval set -- "$params"
+    pull_prompt=1
+    rebase=
+    while true ; do
+        case "$1" in
+            -y|-Y) pull_prompt=0; shift ;;
+            --rebase) pull_strategy=$2; shift 2 ;;
+            --) shift; break ;;
+            *) return 1 ;;
+        esac
+    done
     git_status_ok
     if [ $? == $FAILED ]; then
         error_log "** 无法更新远程分支到本地"
@@ -86,8 +99,19 @@ function git_pull() {
     curr_branch=$(git_current_branch)
     branch_type=$(git_branch_type "$curr_branch")
     if [ $branch_type == 2 ]; then
+        if [[ $pull_prompt == 1 ]]; then
+            get_continue "是否进行更新？(y/n)"
+            toContinue=$?
+            if [ $toContinue == $FAILED ]; then
+                return $SUCCESS
+            fi
+        fi
         # 更新远程分支到本地
-        git pull --rebase
+        if [ "$pull_strategy" == "rebase" ]; then
+            git pull --rebase
+        else
+            git pull
+        fi
         if [ $? != $SUCCESS ]; then
             error_log "** 更新远程仓库到本地失败"
             return $FAILED
@@ -145,7 +169,11 @@ function git_switch_branch() {
     if [ "$(git_current_branch)" == "$switch_target_branch" ]; then
         success_log "分支相同，无需切换"
         if [ $pull_after == 1 ]; then
-            git_pull
+            if [ $checkout_prompt == 1 ]; then
+                git_pull
+            else
+                git_pull -y
+            fi
         fi
         return 0
     fi
@@ -204,7 +232,11 @@ function git_switch_branch() {
     success_log "切换成功，当前分支：$curr_branch"
     # 切换后pull
     if [ $pull_after == 1 ]; then
-        git_pull
+        if [ $checkout_prompt == 1 ]; then
+            git_pull
+        else
+            git_pull -y
+        fi
     fi
     # 切换后还原工作空间
     if [ $needStash = 1 ]; then

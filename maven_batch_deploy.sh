@@ -33,6 +33,10 @@ function usage() {
 }
 
 function execute_maven_goals() {
+    if [[ "$JAVA_CMD_PATH" == "" || $MAVEN_HOME == "" || $MAVEN_CLASSPATH == "" || $MAVEN_MAIN_CLASS == "" ]]; then
+        mvn -s "$maven_setting_env_file" $@
+        return $?
+    fi
     multiModuleProjectDirectory=$(basename "$(pwd)")
     "$JAVA_CMD_PATH" -classpath "$MAVEN_HOME/$MAVEN_CLASSPATH" \
             -Dclassworlds.conf=$MAVEN_HOME/bin/m2.conf \
@@ -55,7 +59,7 @@ function get_maven_info() {
 
 function maven_package() {
     if [[ $flag == 0 ]]; then
-        get_continue "是否需要编译？(y/n)"
+        get_continue "是否需要编译["$group_id":"$artifact_id":"$artifact_version"]？(y/n)"
         if [ $? != $SUCCESS ]; then
             # 跳过编译
             return $SUCCESS
@@ -63,12 +67,12 @@ function maven_package() {
     fi
     # maven 编译
     success_log "开始编译: ["$group_id":"$artifact_id":"$artifact_version"]"
-    execute_maven_goals --update-snapshots -N -o clean -DskipTests package
+    execute_maven_goals --update-snapshots clean -DskipTests package
     if [ $? != $SUCCESS ]; then
-        error_log "编译失败"
+        error_log "编译["$group_id":"$artifact_id":"$artifact_version"]失败"
         return $FAILED
     else
-        success_log "编译成功"
+        success_log "编译["$group_id":"$artifact_id":"$artifact_version"]成功"
         return $SUCCESS
     fi
 }
@@ -87,17 +91,30 @@ function maven_deploy_default() {
         exit 1
     fi
     maven_deploy_args="$maven_deploy_args -Durl=$repository_url -DrepositoryId=$repository_id"
-    execute_maven_goals deploy:deploy-file $maven_deploy_args -N -o
+    execute_maven_goals deploy:deploy-file $maven_deploy_args
     return $?
 }
 
 function maven_deploy() {
+    artifact_file=
+    artifact_pom_file=
     if [[ $flag == 0 ]]; then
-        get_continue "是否需要发布？(y/n)"
+        get_continue "是否需要发布["$group_id":"$artifact_id":"$artifact_version"]到$env？(y/n)"
         if [ $? != $SUCCESS ]; then
             # 跳过发布
             return $SUCCESS
         fi
+    fi
+    if [ "$maven_deploy_type" == "jar" ]; then
+        artifact_file="target/$artifact_id-$artifact_version.jar"
+    elif [ "$maven_deploy_type" == "jar_and_pom" ]; then
+        artifact_file="target/$artifact_id-$artifact_version.jar"
+        artifact_pom_file="pom.xml"
+    elif [ "$maven_deploy_type" == "pom" ]; then
+        artifact_pom_file="pom.xml"
+    else
+        error_log "发布失败, maven_deploy_type 只支持：jar jar_and_pom pom 3种"
+        exit 1
     fi
     if [ $deploy_mode == 0 ]; then
         # 默认使用maven 命令发布
@@ -107,11 +124,11 @@ function maven_deploy() {
         maven_deploy_extend
     fi
     if [ $? != $SUCCESS ]; then
-        success_log "发布失败"
-        return $SUCCESS
-    else
-        error_log "发布失败"
+        error_log "发布["$group_id":"$artifact_id":"$artifact_version"]到$env 失败"
         return $FAILED
+    else
+        success_log "发布["$group_id":"$artifact_id":"$artifact_version"]到$env 成功"
+        return $SUCCESS
     fi
 }
 
@@ -124,7 +141,9 @@ function maven_deploy_with_project() {
     for i in "${!maven_artifact_dirs[@]}";
     do
         maven_artifact_dir=${maven_artifact_dirs[$i]}
-        cd $maven_artifact_dir
+        cd $maven_artifact_dir || exit
+        curr_dir=$(pwd)
+        success_log "当前目录：$curr_dir"
         get_maven_info
         maven_package
         if [ $? != $SUCCESS ]; then
@@ -178,10 +197,6 @@ function batch_deploy_maven() {
 }
 
 function main() {
-    if [[ "$JAVA_CMD_PATH" == "" || "$MAVEN_HOME" == "" ]]; then
-        usage
-        exit 1
-    fi
     # 解析参数
     parameters=`getopt -o hyb: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
