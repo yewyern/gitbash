@@ -12,6 +12,7 @@ git脚本
 
 | 脚本名                 | 功能            | 
 |---------------------|---------------|
+| task_manage.sh      | 任务管理          |
 | batch_del.sh        | 批量删除脚本        |
 | batch_set_remote.sh | 批量设置远程url脚本   |
 | cb.sh               | 批量切换分支脚本      |
@@ -22,6 +23,7 @@ git脚本
 | tagd                | git删除tag并推送远程 |
 | batch_pull          | 批量拉取远程代码      |
 | new_workspace       | 新建工作空间        |
+| maven_batch_deploy  | 批量编译maven上传   |
 
 ## 环境配置
 
@@ -40,14 +42,8 @@ if [ -f /c/github/gitbash/.bash_profile ]; then
 fi
 ```
 
-### ubuntu配置
+## 脚本使用
 
-```shell
-vi ~/.bashrc
-
-# 添加如下代码
-if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
-        . /mnt/c/github/gitbash/.bash_aliases
-fi
-```
-
+1. 打开git bash
+2. 输入task，显示任务管理帮助
+3. 其他命令直接输入也会有帮助文档显示，根据文档进行使用即可

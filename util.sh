@@ -14,9 +14,9 @@ function trim() {
 }
 
 function get_continue() {
-    echo "$@"
     # read不能在管道里使用
-    read toContinue
+    read -p "$@" toContinue
+    echo
     if [[ "Y" == "$toContinue" || "y" == "$toContinue" ]]; then
         return $SUCCESS
     fi

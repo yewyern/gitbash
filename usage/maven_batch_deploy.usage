@@ -1,0 +1,15 @@
+Usage: maven_batch_deploy.sh <task_id> <env> [-h] [-y] [-b <branch>]
+    -h  显示帮助文档
+    -y  直接切换，无需确认
+    -b  使用指定分支编译发布
+
+    task_id 可以通过 `task_manage.sh show` 查看
+    env     要编译发布的环境
+
+example: maven_batch_deploy.sh 1 dev -y
+    批量编译task_id为1的所有项目的开发分支，并发布到开发环境的maven私服
+example: maven_batch_deploy.sh 1 sit
+    批量编译task_id为1的所有项目的测试分支，并发布到测试环境的maven私服
+example: maven_batch_deploy.sh 1 release -b branch1
+    批量编译task_id为1的所有项目的指定分支branch1，并发布到release环境的maven私服
+

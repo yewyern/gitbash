@@ -25,6 +25,11 @@ function main() {
 
     if [ 'show' == $command ]; then
         list_task "$@"
+    elif [ 'add' == $command ]; then
+        add_task "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
     elif [ 'del' == $command ]; then
         del_task "$@"
         if [ $? == 1 ]; then

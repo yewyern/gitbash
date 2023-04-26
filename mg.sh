@@ -31,7 +31,7 @@ function merge_branch_with_project() {
     success_log "当前目录：$curr_dir"
     # 合并分支
     if [ $flag == 1 ]; then
-        git_merge_branch $from_br $to_br
+        git_merge_branch $from_br $to_br -y
     else
         git_merge_branch $from_br $to_br
     fi

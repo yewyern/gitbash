@@ -15,6 +15,81 @@ task_table=$bash_dir"/config/tasks.txt"
 declare -A task_info
 task_projects=()
 
+function add_task() {
+    task_headers=($(parse_task_table_headers))
+    task_header_len=${#task_headers[@]}
+    # flag=0，提示参数
+    flag=0
+    template_task_id=-1
+    # 解析参数
+    params=`getopt -o hyt: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            -t) template_task_id=$2; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
+        esac
+    done
+    if [ $template_task_id != -1 ]; then
+        # 通过现有任务创建
+        get_task $template_task_id
+    else
+        # 普通创建，解析参数到task_info
+        # id由脚本自动计算，所以少一个参数
+        n=$(($task_header_len-1))
+        if [ $n -gt $# ]; then
+            n=$#
+        fi
+        for ((i=1; i<=$n; i++)) do
+            key=${task_headers[$i]}
+            val=$1
+            task_info["$key"]="$val"
+            shift
+        done
+    fi
+    if [ $flag == 0 ]; then
+        # 普通创建，提示输入任务信息
+        for ((i=1; i<$task_header_len; i++)) do
+            key=${task_headers[$i]}
+            val=${task_info["$key"]}
+            if [ "$val" != "" ]; then
+                success_log "请输入$key($val):"
+            else
+                success_log "请输入$key:"
+            fi
+            read val1
+            success_log
+            if [ "$val1" != "" ]; then
+                val=$val1
+            fi
+            task_info["$key"]="$val"
+        done
+    fi
+    # 生成id
+    last_id=`sed -n '2p' $task_table | cut -d '|' -f1 | awk '{print $1}'`
+    task_id=$(($last_id+1))
+    task_info["task_id"]=$task_id
+    # 拼接数据行
+    data=
+    for ((i=0; i<$task_header_len; i++)) do
+        key=${task_headers[$i]}
+        val=${task_info["$key"]}
+        data="$data $val |"
+    done
+    sed -i "1a $data" $task_table
+    if [ $? == 0 ]; then
+        success_log "添加任务成功"
+        list_task $task_id
+        return 0
+    fi
+    error_log "添加任务失败"
+    return 1
+}
+
 function list_task() {
     if [ $# -ge 1 ]; then
         # 展示指定的任务
@@ -63,4 +138,12 @@ function get_task() {
     IFS=','
     task_projects=(${task_info["projects"]})
     IFS=$OLD_IFS
+}
+
+function parse_task_table_headers() {
+    OLD_IFS=$IFS
+    IFS='|'
+    read -r -a task_headers <<< `head -n1 $task_table`
+    IFS=$OLD_IFS
+    echo "${task_headers[@]}"
 }
