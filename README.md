@@ -42,17 +42,6 @@ if [ -f /c/github/gitbash/.bash_profile ]; then
 fi
 ```
 
-### ubuntu配置
-
-```shell
-vi ~/.bashrc
-
-# 添加如下代码
-if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
-        . /mnt/c/github/gitbash/.bash_aliases
-fi
-```
-
 ## 脚本使用
 
 1. 打开git bash
