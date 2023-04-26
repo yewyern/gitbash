@@ -22,6 +22,7 @@ git脚本
 | tagd                | git删除tag并推送远程 |
 | batch_pull          | 批量拉取远程代码      |
 | new_workspace       | 新建工作空间        |
+| maven_batch_deploy  | 批量编译maven上传   |
 
 ## 环境配置
 

@@ -62,11 +62,11 @@ function add_task() {
                 success_log "请输入$key:"
             fi
             read val1
+            success_log
             if [ "$val1" != "" ]; then
                 val=$val1
             fi
             task_info["$key"]="$val"
-            success_log
         done
     fi
     # 生成id
