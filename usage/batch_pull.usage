@@ -1,0 +1,11 @@
+Usage: batch_pull.sh [task_id] [-h] [-y]
+    -h 显示帮助文档
+    -y 直接切换，无需确认
+
+example: batch_pull.sh
+    对当前目录下的所有文件夹执行git pull
+example: batch_pull.sh 1
+    批量更新task_id为1的所有项目远程代码到本地，需要逐个项目进行确认
+example: batch_pull.sh 1 -y
+    批量更新task_id为1的所有项目远程代码到本地，无需确认
+

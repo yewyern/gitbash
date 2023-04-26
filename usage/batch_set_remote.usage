@@ -1,0 +1,17 @@
+Usage: batch_set_remote.sh <task_id> [-h] [-y] [-r <remote_file>] [-w <work_dir>] [--remote-file <remote_file>] [--work-dir <work_dir>]
+    -h                  显示帮助文档
+    -y                  直接切换，无需确认
+    -r --remote-file    指定git远程配置文件
+                        remote_file可以是相对路径，也可以是绝对路径
+                        当找不到时，会在脚本文件下config目录进行寻找
+                        此参数的默认值为remote.txt，即当前文件夹中存在remote.txt，优先使用当前文件夹中的
+    -w --work-dir       指定工作空间地址，work_dir可以是相对路径，也可以是绝对路径
+
+
+    注意：需在config/remote.txt中配置项目对应的远程url
+example: batch_set_remote.sh -y
+    根据task_id=1的任务配置，创建work_dir目录，并拉取该任务的所有项目，并切换到开发分支，无需确认
+
+example: batch_set_remote.sh -r remote1.txt -w work1
+    在当前路径下work1目录中，根据remote1.txt设置相关项目的远程url
+

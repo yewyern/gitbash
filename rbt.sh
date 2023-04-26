@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
 # 以本分支为根基，合并到目标分支
