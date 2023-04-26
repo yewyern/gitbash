@@ -12,6 +12,7 @@ git脚本
 
 | 脚本名                 | 功能            | 
 |---------------------|---------------|
+| task_manage.sh      | 任务管理          |
 | batch_del.sh        | 批量删除脚本        |
 | batch_set_remote.sh | 批量设置远程url脚本   |
 | cb.sh               | 批量切换分支脚本      |
@@ -52,3 +53,8 @@ if [ -f /mnt/c/github/gitbash/.bash_aliases ]; then
 fi
 ```
 
+## 脚本使用
+
+1. 打开git bash
+2. 输入task，显示任务管理帮助
+3. 其他命令直接输入也会有帮助文档显示，根据文档进行使用即可
