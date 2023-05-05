@@ -144,6 +144,13 @@ function maven_deploy_with_project() {
         cd $maven_artifact_dir || exit
         curr_dir=$(pwd)
         success_log "当前目录：$curr_dir"
+        if [[ $flag == 0 ]]; then
+            get_continue "是否需要发布？(y/n)"
+            if [ $? != $SUCCESS ]; then
+                # 快速跳过不发布的项目
+                continue
+            fi
+        fi
         get_maven_info
         maven_package
         if [ $? != $SUCCESS ]; then
