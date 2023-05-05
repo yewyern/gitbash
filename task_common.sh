@@ -90,6 +90,69 @@ function add_task() {
     return 1
 }
 
+function update_task() {
+    task_headers=($(parse_task_table_headers))
+    task_header_len=${#task_headers[@]}
+    # flag=0，提示参数
+    flag=0
+    # 解析参数
+    params=`getopt -o hyt: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
+        esac
+    done
+    if [ $# -lt 1 ]; then
+        # 修改必传任务id
+        usage
+        return 1
+    fi
+    task_id=$1
+    # 通过现有任务创建
+    get_task $task_id
+    if [ $flag == 0 ]; then
+        # 普通创建，提示输入任务信息
+        for ((i=1; i<$task_header_len; i++)) do
+            key=${task_headers[$i]}
+            val=${task_info["$key"]}
+            if [ "$val" != "" ]; then
+                success_log "请输入$key($val):"
+            else
+                success_log "请输入$key:"
+            fi
+            read val1
+            success_log
+            if [ "$val1" != "" ]; then
+                val=$val1
+            fi
+            task_info["$key"]="$val"
+        done
+    fi
+    task_info["task_id"]=$task_id
+    # 拼接数据行
+    data=
+    for ((i=0; i<$task_header_len; i++)) do
+        key=${task_headers[$i]}
+        val=${task_info["$key"]}
+        data="$data $val |"
+    done
+    line_num=`grep "^$task_id *|" tasks.txt -n | grep -v "deleted" | cut -d: -f1`
+    sed -i "${line_num}a $data" $task_table
+    sed -i "${line_num}d" $task_table
+    if [ $? == 0 ]; then
+        success_log "修改任务成功"
+        list_task $task_id
+        return 0
+    fi
+    error_log "修改任务失败"
+    return 1
+}
+
 function list_task() {
     if [ $# -ge 1 ]; then
         # 展示指定的任务

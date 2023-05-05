@@ -30,6 +30,11 @@ function main() {
         if [ $? == 1 ]; then
             usage
         fi
+    elif [ 'update' == $command ]; then
+        update_task "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
     elif [ 'del' == $command ]; then
         del_task "$@"
         if [ $? == 1 ]; then
