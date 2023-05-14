@@ -14,6 +14,7 @@ flag=0
 task_branch=
 env=
 branch_env_file=
+work_dir=
 
 function usage() {
     cat "$bash_dir/usage/cb.usage"
@@ -35,7 +36,10 @@ function switch_branch_with_project() {
 }
 
 function batch_switch_branch() {
-    work_dir=${task_info["work_dir"]}
+    if [ "$work_dir" == "" ]; then
+        work_dir=${task_info["work_dir"]}
+    fi
+    work_dir=`realpath "$work_dir"`
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
@@ -54,7 +58,7 @@ function batch_switch_branch() {
 
 function main() {
     # 解析参数
-    parameters=`getopt -o hyb:e: -n "$0" -- "$@"`
+    parameters=`getopt -o hyb:e:w: --long work-dir: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
     eval set -- "$parameters"
     while true ; do
@@ -63,6 +67,7 @@ function main() {
             -y) flag=1; shift ;;
             -b) task_branch=$2; shift 2 ;;
             -e) env=$2; branch_env_file="$bash_dir/config/branch_$env.txt"; shift 2 ;;
+            -w | --work-dir) work_dir=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac

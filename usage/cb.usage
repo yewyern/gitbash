@@ -1,8 +1,9 @@
-Usage: cb.sh <task_id> [-h] [-y] [-e <env>] [-b <branch>]
+Usage: cb.sh <task_id> [-h] [-y] [-e <env>] [-b <branch>] [-w <work_dir>]
     -h 显示帮助文档
     -y 直接切换，无需确认
     -e 根据环境配置切换，需要在config文件中配置branch_{env}.txt，不指定则切换到开发分支
     -b 切换到指定的分支，不指定则切换到开发分支
+    -w 指定工作空间
 
     task_id 可以通过 `task_manage.sh show` 查看
 example: cb.sh 1 -y
