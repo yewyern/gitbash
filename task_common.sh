@@ -141,7 +141,7 @@ function update_task() {
         val=${task_info["$key"]}
         data="$data $val |"
     done
-    line_num=`grep "^$task_id *|" tasks.txt -n | grep -v "deleted" | cut -d: -f1`
+    line_num=`grep "^$task_id *|" "$task_table" -n | grep -v "deleted" | cut -d: -f1`
     sed -i "${line_num}a $data" $task_table
     sed -i "${line_num}d" $task_table
     if [ $? == 0 ]; then
@@ -195,6 +195,9 @@ function get_task() {
     do
         key=`trim ${head[$i]}`
         val=`trim ${data[$i]}`
+        if [ "$key" == "" ]; then
+            continue
+        fi
         # 字符串拼接可以放到双引号内，也可以放到双引号外，放到双引号内可能出现问题，丢失部分字符，原因未知
         task_info["$key"]="$val"
     done
