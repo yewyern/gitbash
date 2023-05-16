@@ -392,7 +392,7 @@ function git_create_branch() {
 
     # 判断是否要推送远程
     remote_url=`git_get_remote`
-    if [ "$curr_branch" == "" ]; then
+    if [ "$remote_url" == "" ]; then
         # 不存在远程url，不推送
         return $SUCCESS
     fi
@@ -403,7 +403,7 @@ function git_create_branch() {
         fi
     fi
     # 推送到远程
-    git_push
+    git push --set-upstream origin "$curr_branch"
     if [ $? == 0 ]; then
         success_log "已推送分支 $curr_branch 到远程"
         return $SUCCESS
