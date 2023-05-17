@@ -176,7 +176,9 @@ function batch_deploy_maven() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        work_branch=${work_branch:-$(get_value_by_key "$branch_env_file" "$project" 0 1)}
+        if [ -z "$work_branch" ]; then
+            work_branch=${work_branch:-$(get_value_by_key "$branch_env_file" "$project" 0 1)}
+        fi
         if [ -z "$work_branch" ]; then
             error_log "要编译的分支不能为空"
             exit 1
@@ -204,26 +206,18 @@ function batch_deploy_maven() {
 
 function main() {
     # 解析参数
-    while getopts "hyb:" opt; do
-        case $opt in
-            h)
-                usage
-                exit 0
-                ;;
-            y)
-                flag=1
-                ;;
-            b)
-                work_branch=$OPTARG
-                ;;
-            \?)
-                usage
-                exit 1
-                ;;
+    params=`getopt -o hyb: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            -b) work_branch=$2; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
         esac
     done
-    shift $((OPTIND-1))
-
     if [ $# -lt 2 ]; then
         usage
         exit 1
