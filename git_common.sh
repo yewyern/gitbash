@@ -130,8 +130,10 @@ function git_push() {
         if [ $? == $SUCCESS ]; then
             success_log "已推送分支 $curr_branch 到远程"
             return $SUCCESS
+        else
+            error_log "推送分支 $curr_branch 到远程失败"
+            return $FAILED
         fi
-        return $FAILED
     fi
     return $SUCCESS
 }
