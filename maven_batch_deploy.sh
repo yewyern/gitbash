@@ -176,10 +176,11 @@ function batch_deploy_maven() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        if [ -z "$work_branch" ]; then
-            work_branch=${work_branch:-$(get_value_by_key "$branch_env_file" "$project" 0 1)}
+        target_branch=$work_branch
+        if [ -z "$target_branch" ]; then
+            target_branch=$(get_value_by_key "$branch_env_file" "$project" 0 1)
         fi
-        if [ -z "$work_branch" ]; then
+        if [ -z "$target_branch" ]; then
             error_log "要编译的分支不能为空"
             exit 1
         fi
@@ -195,7 +196,7 @@ function batch_deploy_maven() {
             fi
         fi
         # 切换到目标分支
-        switch_branch_with_project $project $work_branch
+        switch_branch_with_project $project $target_branch
         # maven编译
         maven_deploy_with_project $project
         success_log "-----------------------"
