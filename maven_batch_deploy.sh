@@ -207,7 +207,7 @@ function batch_deploy_maven() {
 
 function main() {
     # 解析参数
-    params=`getopt -o hyb: -n "$0" -- "$@"`
+    params=`getopt -o hyb:e: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
     eval set -- "$params"
     while true ; do
@@ -215,6 +215,7 @@ function main() {
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
             -b) work_branch=$2; shift 2 ;;
+            -e) env=$2; branch_env_file="$bash_dir/config/branch_$env.txt"; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac
@@ -224,7 +225,9 @@ function main() {
         exit 1
     else
         env=$2
-        branch_env_file="$bash_dir/config/branch_$env.txt";
+        if [ -z "$branch_env_file" ]; then
+            branch_env_file="$bash_dir/config/branch_$env.txt";
+        fi
         maven_setting_env_file="$bash_dir/config/settings-$env.xml";
         get_task $1
         work_dir=${task_info["work_dir"]}
