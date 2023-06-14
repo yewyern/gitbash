@@ -82,7 +82,7 @@ function git_pull() {
     [ $? != $SUCCESS ] && return $FAILED
     eval set -- "$params"
     pull_prompt=1
-    rebase=0
+    pull_strategy=0
     while true ; do
         case "$1" in
             -y|-Y) pull_prompt=0; shift ;;
