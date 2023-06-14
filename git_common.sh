@@ -82,11 +82,11 @@ function git_pull() {
     [ $? != $SUCCESS ] && return $FAILED
     eval set -- "$params"
     pull_prompt=1
-    rebase=
+    rebase=0
     while true ; do
         case "$1" in
             -y|-Y) pull_prompt=0; shift ;;
-            --rebase) pull_strategy=$2; shift 2 ;;
+            --rebase) pull_strategy=1; shift 2 ;;
             --) shift; break ;;
             *) return 1 ;;
         esac
@@ -107,7 +107,7 @@ function git_pull() {
             fi
         fi
         # 更新远程分支到本地
-        if [ "$pull_strategy" == "rebase" ]; then
+        if [ $pull_strategy == 1 ]; then
             git pull --rebase
         else
             git pull
