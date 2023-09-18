@@ -8,6 +8,7 @@
 bash_dir=$(dirname "$0")
 #base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
+source "$bash_dir/task_common.sh"
 
 flag=0
 remote_file=
@@ -90,6 +91,10 @@ function main() {
         esac
     done
 
+    get_task $1
+    if [ "$work_dir" == "" ]; then
+        work_dir=${task_info["work_dir"]}
+    fi
     if [ "$work_dir" == '' ]; then
         usage
         exit 1
