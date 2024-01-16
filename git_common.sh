@@ -1,4 +1,7 @@
-bash_dir=$(dirname "$0")
+# 获取脚本的全路径
+script_path="$(realpath $0)"
+# 提取脚本所在的目录
+bash_dir="$(dirname $script_path)"
 source $bash_dir"/util.sh"
 
 # 查看当前分支名

@@ -5,7 +5,11 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
-bash_dir=$(dirname "$0")
+# 获取脚本的全路径
+script_path="$(realpath $0)"
+# 提取脚本所在的目录
+bash_dir="$(dirname $script_path)"
+#echo $base_dir
 #base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
