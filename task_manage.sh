@@ -6,7 +6,10 @@
 # @date: 2023-04-14
 
 # 默认选项值
-bash_dir=$(dirname "$0")
+# 获取脚本的全路径
+script_path="$(realpath $0)"
+# 提取脚本所在的目录
+bash_dir="$(dirname $script_path)"
 base_dir=$(pwd)
 source $bash_dir"/task_common.sh"
 
@@ -27,6 +30,11 @@ function main() {
         list_task "$@"
     elif [ 'add' == $command ]; then
         add_task "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
+    elif [ 'update' == $command ]; then
+        update_task "$@"
         if [ $? == 1 ]; then
             usage
         fi

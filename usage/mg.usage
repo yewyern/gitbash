@@ -1,10 +1,12 @@
 Usage: mg.sh <task_id> [-h] [-y] [-e <env>] [-t <to_branch>] [-f <from_branch>]
-                       [--to_branch <to_branch>] [--from_branch <from_branch>]
+                       [--to_branch <to-branch>] [--from-branch <from_branch>]
+                       [-E <from_env>] [--fe <from_env>]
     -h                  显示帮助文档
     -y                  直接切换，无需确认
     -e                  根据环境配置切换，需要在config文件中配置branch_{env}.txt，不指定则切换到开发分支
     -t --to-branch      要合并到的目标分支，
     -f --from-branch    要合并到的源分支，不指定则默认使用开发分支
+    -E --from-env       要合并的源分支环境，不指定则默认使用开发分支
 
     task_id 可以通过 `task_manage.sh show` 查看
 

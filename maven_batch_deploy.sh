@@ -5,7 +5,10 @@
 # @author: 徐宙
 # @date: 2020-12-08
 
-bash_dir=$(dirname "$0")
+# 获取脚本的全路径
+script_path="$(realpath $0)"
+# 提取脚本所在的目录
+bash_dir="$(dirname $script_path)"
 #base_dir=$(pwd)
 flag=0
 deploy_mode=0
@@ -144,6 +147,13 @@ function maven_deploy_with_project() {
         cd $maven_artifact_dir || exit
         curr_dir=$(pwd)
         success_log "当前目录：$curr_dir"
+        if [[ $flag == 0 ]]; then
+            get_continue "是否需要发布？(y/n)"
+            if [ $? != $SUCCESS ]; then
+                # 快速跳过不发布的项目
+                continue
+            fi
+        fi
         get_maven_info
         maven_package
         if [ $? != $SUCCESS ]; then
@@ -169,8 +179,11 @@ function batch_deploy_maven() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        work_branch=${work_branch:-$(get_value_by_key "$branch_env_file" "$project" 0 1)}
-        if [ -z "$work_branch" ]; then
+        target_branch=$work_branch
+        if [ -z "$target_branch" ]; then
+            target_branch=$(get_value_by_key "$branch_env_file" "$project" 0 1)
+        fi
+        if [ -z "$target_branch" ]; then
             error_log "要编译的分支不能为空"
             exit 1
         fi
@@ -186,7 +199,7 @@ function batch_deploy_maven() {
             fi
         fi
         # 切换到目标分支
-        switch_branch_with_project $project $work_branch
+        switch_branch_with_project $project $target_branch
         # maven编译
         maven_deploy_with_project $project
         success_log "-----------------------"
@@ -197,32 +210,27 @@ function batch_deploy_maven() {
 
 function main() {
     # 解析参数
-    while getopts "hyb:" opt; do
-        case $opt in
-            h)
-                usage
-                exit 0
-                ;;
-            y)
-                flag=1
-                ;;
-            b)
-                work_branch=$OPTARG
-                ;;
-            \?)
-                usage
-                exit 1
-                ;;
+    params=`getopt -o hyb:e: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            -b) work_branch=$2; shift 2 ;;
+            -e) env=$2; branch_env_file="$bash_dir/config/branch_$env.txt"; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
         esac
     done
-    shift $((OPTIND-1))
-
     if [ $# -lt 2 ]; then
         usage
         exit 1
     else
         env=$2
-        branch_env_file="$bash_dir/config/branch_$env.txt";
+        if [ -z "$branch_env_file" ]; then
+            branch_env_file="$bash_dir/config/branch_$env.txt";
+        fi
         maven_setting_env_file="$bash_dir/config/settings-$env.xml";
         get_task $1
         work_dir=${task_info["work_dir"]}
