@@ -1,4 +1,7 @@
-bash_dir=$(dirname "$0")
+# 获取脚本的全路径
+script_path="$(realpath $0)"
+# 提取脚本所在的目录
+bash_dir="$(dirname $script_path)"
 source $bash_dir"/util.sh"
 
 # 查看当前分支名
@@ -82,11 +85,11 @@ function git_pull() {
     [ $? != $SUCCESS ] && return $FAILED
     eval set -- "$params"
     pull_prompt=1
-    rebase=
+    pull_strategy=0
     while true ; do
         case "$1" in
             -y|-Y) pull_prompt=0; shift ;;
-            --rebase) pull_strategy=$2; shift 2 ;;
+            --rebase) pull_strategy=1; shift 2 ;;
             --) shift; break ;;
             *) return 1 ;;
         esac
@@ -107,7 +110,7 @@ function git_pull() {
             fi
         fi
         # 更新远程分支到本地
-        if [ "$pull_strategy" == "rebase" ]; then
+        if [ $pull_strategy == 1 ]; then
             git pull --rebase
         else
             git pull
@@ -130,8 +133,10 @@ function git_push() {
         if [ $? == $SUCCESS ]; then
             success_log "已推送分支 $curr_branch 到远程"
             return $SUCCESS
+        else
+            error_log "推送分支 $curr_branch 到远程失败"
+            return $FAILED
         fi
-        return $FAILED
     fi
     return $SUCCESS
 }
@@ -392,7 +397,7 @@ function git_create_branch() {
 
     # 判断是否要推送远程
     remote_url=`git_get_remote`
-    if [ "$curr_branch" == "" ]; then
+    if [ "$remote_url" == "" ]; then
         # 不存在远程url，不推送
         return $SUCCESS
     fi
@@ -403,7 +408,7 @@ function git_create_branch() {
         fi
     fi
     # 推送到远程
-    git_push
+    git push --set-upstream origin "$curr_branch"
     if [ $? == 0 ]; then
         success_log "已推送分支 $curr_branch 到远程"
         return $SUCCESS

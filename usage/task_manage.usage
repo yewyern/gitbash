@@ -1,7 +1,13 @@
 Usage: task_manage.sh <command> [<args>]
 The task manage commands:
+    add                         add task
+    update <task_id>            update task
     show                        show all tasks(exclude deleted)
     show <task_id>              show the task by id
     del  <task_id>              delete the task by id
 
+common options:
+    [-h] show helps
 
+add command options:
+    [-y] [-t <template task id>]

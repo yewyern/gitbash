@@ -1,5 +1,5 @@
 Usage: batch_new_branch.sh <task_id> [-h] [-y] [-b <branch>] [-f <from_branch>]
-                       [--to_branch <to_branch>] [--from_branch <from_branch>]
+                       [--from_branch <from_branch>]
     -h                  显示帮助文档
     -y                  直接切换，无需确认
     -b                  要创建的目标分支，默认使用任务分支
