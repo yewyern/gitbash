@@ -43,21 +43,8 @@ function get_value_by_key() {
     key_index=$3
     value_index=$4
     # grep 出符合条件的多行数据
-    lines=$(grep "$key" $filename | grep -v '^#')
-    # 遍历进行匹配
-    for i in "${!lines[@]}"; do
-        line=${lines[$i]}
-        # 处理换行符
-        line=$(echo $line | tr --delete '\n')
-        line=$(echo $line | tr --delete '\r')
-        # 根据空格或tab分割字符串
-        arr=($line)
-        if [ "${arr[$key_index]}" == "$key" ]; then
-            echo ${arr[$value_index]}
-            return $SUCCESS
-        fi
-    done
-    return $FAILED
+    # 根据key弱匹配 | 去除#开头的注释行 | 根据kv索引取对应列 | 根据key强匹配 | 取第1行 | 取第2列value
+    grep "$key" "$filename" | grep -v '^#' | awk -v n1="$(($key_index+1))" -v n2="$(($value_index+1))" '{print $n1,$n2}' | grep "^$key " | sed -n '1p' | cut -d" " -f2
 }
 
 # get_value_by_index <filename> <value_index>
