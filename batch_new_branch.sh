@@ -73,8 +73,14 @@ function main() {
     get_task $1
     projects=(${task_projects[*]})
     work_dir=${task_info["work_dir"]}
-    if [ "$new_branch" == "" ]; then
-        new_branch=${task_info["task_branch"]}
+    if [[ "$new_branch" == '' ]]; then
+        if [ "$env" == 'dev' ]; then
+            new_branch=${task_info["task_branch"]}"."$username
+        elif [ "$env" != '' ]; then
+            new_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
+        else
+            new_branch=${task_info["task_branch"]}
+        fi
     fi
     # 批量创建分支
     batch_new_branch

@@ -1,5 +1,6 @@
 SUCCESS=0
 FAILED=1
+username="$(whoami)"
 
 function success_log() {
     echo -e "\033[32m $* \033[0m"

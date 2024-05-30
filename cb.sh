@@ -48,7 +48,9 @@ function batch_switch_branch() {
     do
         project=${task_projects[$i]}
         if [[ $task_branch == '' ]]; then
-            if [ "$env" != '' ]; then
+            if [ "$env" == 'dev' ]; then
+                task_branch=${task_info["task_branch"]}"."$username
+            elif [ "$env" != '' ]; then
                 task_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
             else
                 task_branch=${task_info["task_branch"]}
