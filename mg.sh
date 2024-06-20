@@ -54,7 +54,9 @@ function batch_merge_branch() {
         to_br=$to_branch
         if [ "$to_br" == '' ]; then
             if [ "$env" == 'dev' ]; then
-                to_br=${task_info["task_branch"]}"."$username
+                to_br=${task_info["release_branch"]}"."$username
+            elif [ "$env" == 'release' ]; then
+                to_br=${task_info["release_branch"]}
             elif [ "$env" != '' ]; then
                 to_br=`get_value_by_key "$branch_env_file" "$project" 0 1`
             else
@@ -63,7 +65,9 @@ function batch_merge_branch() {
         fi
         if [ "$from_br" == '' ]; then
             if [ "$from_env" == 'dev' ]; then
-                from_br=${task_info["task_branch"]}"."$username
+                from_br=${task_info["release_branch"]}"."$username
+            elif [ "$from_env" == 'release' ]; then
+                from_br=${task_info["release_branch"]}
             elif [ "$from_env" != '' ]; then
                 from_br=`get_value_by_key "$branch_from_env_file" "$project" 0 1`
             else
