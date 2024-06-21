@@ -318,7 +318,15 @@ function git_merge_branch() {
     git_status_ok
     if [ $? == $FAILED ]; then
         error_log "合并$project分支$merge_source_branch到$merge_target_branch，存在冲突"
-        return 0
+        get_continue "是否已完成合并？(y/n)"
+        if [ $? == $FAILED ]; then
+            return $SUCCESS
+        fi
+        get_continue "是否需要提交？(y/n)"
+        if [ $? == $SUCCESS ]; then
+            # 提交合并结果
+            git commit
+        fi
     fi
     success_log "合并$project分支$merge_source_branch到$merge_target_branch成功"
     # 推送到远程
