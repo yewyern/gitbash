@@ -24,18 +24,31 @@ function usage() {
     cat "$bash_dir/usage/new_workspace.usage"
 }
 
-function switch_branch_with_project() {
+function switch_or_create_branch_with_project() {
     project_dir=$1
     target_br=$2
     # 打开文件夹
     cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-    # 切换分支
+
+    branch_type=$(git_branch_type "$target_br")
+    # 如果分支存在，直接切换分支
+    if [[ $branch_type != 0 ]]; then
+        # 切换分支
+        if [ $flag == 1 ]; then
+            git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
+        else
+            git_switch_branch $target_br --fetch_before --pull_after --stash prompt
+        fi
+        return $SUCCESS
+    fi
+    # 分支不存在，从master创建分支
+    error_log "分支不存在：$target_br，需要进行创建"
     if [ $flag == 1 ]; then
-        git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
+        git_create_branch master $target_br -y
     else
-        git_switch_branch $target_br --fetch_before --pull_after --stash prompt
+        git_create_branch master $target_br
     fi
 }
 
@@ -75,7 +88,7 @@ function new_workspace() {
         project=${projects[$i]}
         success_log "当前项目："$project
         add_project $project
-        [[ $? == $SUCCESS && "$task_branch" != '' ]] && switch_branch_with_project "$work_dir/$project" "$task_branch"
+        [[ $? == $SUCCESS && "$task_branch" != '' ]] && switch_or_create_branch_with_project "$work_dir/$project" "$task_branch"
         success_log "-----------------------"
         success_log
     done

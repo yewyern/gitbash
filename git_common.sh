@@ -334,8 +334,7 @@ function git_merge_branch() {
     return $?
 }
 
-
-# 合并分支
+# 创建分支
 # git_create_branch <create_source_branch> <create_target_branch> [-y]
 function git_create_branch() {
     # 解析参数
@@ -409,11 +408,10 @@ function git_create_branch() {
         # 不存在远程url，不推送
         return $SUCCESS
     fi
-    if [[ $create_prompt == 1 ]]; then
-        get_continue "是否推送远程？(y/n)"
-        if [ $? == $FAILED ]; then
-            return $SUCCESS
-        fi
+    # 推送远程强制确认
+    get_continue "是否推送远程？(y/n)"
+    if [ $? == $FAILED ]; then
+        return $SUCCESS
     fi
     # 推送到远程
     git push --set-upstream origin "$curr_branch"
