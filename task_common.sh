@@ -75,7 +75,7 @@ function add_task() {
     # 生成id
     last_id=`sed -n '2p' $task_table | cut -d '|' -f1 | awk '{print $1}'`
     task_id=$(($last_id+1))
-    task_info["task_id"]=$task_id
+    task_info["id"]=$task_id
     # 拼接数据行
     data=
     for ((i=0; i<$task_header_len; i++)) do
@@ -136,7 +136,7 @@ function update_task() {
             task_info["$key"]="$val"
         done
     fi
-    task_info["task_id"]=$task_id
+    task_info["id"]=$task_id
     # 拼接数据行
     data=
     for ((i=0; i<$task_header_len; i++)) do

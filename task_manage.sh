@@ -27,7 +27,7 @@ function main() {
     shift 1
 
     if [ 'show' == $command ]; then
-        list_task "$@"
+        list_task "$@" | column -t -s $'|'
     elif [ 'add' == $command ]; then
         add_task "$@"
         if [ $? == 1 ]; then
