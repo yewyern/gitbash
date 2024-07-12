@@ -216,3 +216,10 @@ function parse_task_table_headers() {
     IFS=$OLD_IFS
     echo "${task_headers[@]}"
 }
+
+function task_clear() {
+    # 清空被逻辑删除的任务, 并重新生成任务
+    head -n1 $task_table> $task_table.tmp
+    list_task | tail -n +2 | tac | awk -F'|' -v OFS='|' '{$1="";print $0}' | nl | tac | awk '{gsub("\t", " ");gsub(/ +/," ");gsub(/^ +/,"");print}'>> $task_table.tmp
+    mv $task_table.tmp $task_table
+}

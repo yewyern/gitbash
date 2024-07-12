@@ -43,6 +43,11 @@ function main() {
         if [ $? == 1 ]; then
             usage
         fi
+    elif [ 'clear' == $command ]; then
+        task_clear "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
     fi
 }
 
