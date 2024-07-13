@@ -59,3 +59,31 @@ function get_value_by_index() {
     IFS=$OLD_IFS
     echo "${lines[@]}"
 }
+
+# 获取真实的配置文件路径
+# 优先从当前路径获取，其次从工作空间获取，最后从脚本路径下的config目录下获取
+# get_real_config_path <real_file> [work_dir]
+function get_real_config_path() {
+    real_file=$1
+    work_dir=$2
+    if [ "$work_dir" != '' ]; then
+        work_dir=`realpath $work_dir`
+    fi
+    if [ ! -f "$real_file" ]; then
+        # 如果当前路径找不到，在工作空间路径下寻找
+        if [[ ! -f "$work_dir/$real_file" ]]; then
+            # 如果工作空间路径找不到，在脚本路径下寻找
+            if [ ! -f "$bash_dir/config/$real_file" ]; then
+                # 还找不到，报错
+                error_log "未找到对应的配置文件：$real_file"
+                return $FAILED
+            fi
+            echo "$bash_dir/config/$real_file"
+            return $SUCCESS
+        fi
+        echo "$work_dir/$real_file"
+        return $SUCCESS
+    fi
+    echo `realpath "$remote_file"`
+    return $SUCCESS
+}

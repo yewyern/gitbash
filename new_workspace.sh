@@ -3,7 +3,7 @@
 #
 # 使用当前目录的remote.txt，根据指定的项目列表，拉取所有指定的项目，已存在的不拉取
 # @author: 徐宙
-# @date: 2020-12-08
+# @date: 2023-04-15
 
 # 获取脚本的全路径
 script_path="$(realpath $0)"
@@ -101,34 +101,13 @@ function main() {
     eval set -- "$params"
     while true; do
         case "$1" in
-        -h)
-            usage
-            exit 0
-            ;;
-        -y)
-            flag=1
-            shift
-            ;;
-        -n)
-            task_mode=0
-            shift
-            ;;
-        -r | --remote-file)
-            remote_file=$2
-            shift 2
-            ;;
-        -w | --work-dir)
-            work_dir=$2
-            shift 2
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            usage
-            exit 1
-            ;;
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            -n) task_mode=0; shift ;;
+            -r | --remote-file) remote_file=$2; shift 2 ;;
+            -w | --work-dir) work_dir=$2; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
         esac
     done
 
@@ -156,19 +135,14 @@ function main() {
     if [ "$remote_file" == '' ]; then
         remote_file="remote.txt"
     fi
-    if [ ! -f "$remote_file" ]; then
-        # 如果找不到配置文件，在脚本路径下寻找
-        if [ ! -f "$bash_dir/config/$remote_file" ]; then
-            # 还找不到，报错
-            error_log "未找到对应的远程配置文件：$remote_file"
-            usage
-            exit 1
-        fi
-        remote_file="$bash_dir/config/$remote_file"
-    fi
 
-    remote_file=`realpath "$remote_file"`
     work_dir=`realpath "$work_dir"`
+    remote_file=`get_real_config_path $remote_file $work_dir`
+    if [ $? == $FAILED ]; then
+        # 获取远程配置异常，退出
+        error_log $remote_file
+        exit 1
+    fi
 
     if [ $task_mode != 1 ]; then
         # 非任务模式

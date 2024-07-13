@@ -12,6 +12,7 @@ script_path="$(realpath $0)"
 bash_dir="$(dirname $script_path)"
 base_dir=$(pwd)
 source $bash_dir"/util.sh"
+source $bash_dir"/extend/task_extend.sh"
 
 task_table=$bash_dir"/config/tasks.txt"
 
@@ -222,4 +223,75 @@ function task_clear() {
     head -n1 $task_table> $task_table.tmp
     list_task | tail -n +2 | tac | awk -F'|' -v OFS='|' '{$1="";print $0}' | nl | tac | awk '{gsub("\t", " ");gsub(/ +/," ");gsub(/^ +/,"");print}'>> $task_table.tmp
     mv $task_table.tmp $task_table
+}
+
+# 获取分支
+# get_branch [env [project]]
+function get_branch() {
+    # 扩展点，支持额外分支名的获取方式
+    res_br=`get_branch_extend "$@"`
+    if [ $? == $FAILED ]; then
+        # 扩展有异常，直接结束
+        echo $res_br
+        return $FAILED
+    fi
+    if [ "$res_br" != '' ]; then
+        echo $res_br
+        return $SUCCESS
+    fi
+    # 调用通用获取分支的犯法
+    res_br=`do_get_branch "$@"`
+    if [ $? == $FAILED ]; then
+        echo $res_br
+        return $FAILED
+    fi
+    echo $res_br
+    return $SUCCESS
+}
+
+# 通用获取分支的犯法
+# 任务分支获取使用：task_info["task_branch"]
+# 环境分支获取使用：task_info[$env"_branch"]
+# 或者 根据项目从环境分支文件中获取: `get_value_by_key "$branch_env_file" "$project" 0 1`
+# do_get_branch [env [project]]
+function do_get_branch() {
+    env=$1
+    project=$2
+    if [ "$env" != '' ]; then
+        # 取环境分支
+        # 1、优先从任务配置中获取
+        res_br=${task_info[$env"_branch"]}
+        if [ "$res_br" != '' ]; then
+            echo $res_br
+            return $SUCCESS
+        fi
+        # 2、根据项目从环境分支文件中获取
+        if [ "$project" != '' ]; then
+            branch_env_file=`get_branch_env_file $env`
+            res_br=`get_value_by_key "$branch_env_file" "$project" 0 1`
+            if [ "$res_br" != '' ]; then
+                echo $res_br
+                return $SUCCESS
+            fi
+            error_log "获取环境分支失败，请确认是否在任务上配置或配置环境分支文件"
+            return $FAILED
+        fi
+        echo ""
+        return $SUCCESS
+    fi
+    echo ${task_info["task_branch"]}
+    return $SUCCESS
+}
+
+# 获取环境分支文件
+# get_branch_env_file <env>
+function get_branch_env_file() {
+    # 如果任务级别修改了环境分支前缀
+    env_branch_prefix=${task_info["env_branch_prefix"]}
+    if [ "$env_branch_prefix" != '' ]; then
+        echo $bash_dir"/config/"$env_branch_prefix"_"$env".txt"
+    fi
+    # 通用环境分支文件配置
+    branch_env_file=$bash_dir"/config/branch_"$env".txt"
+    echo $branch_env_file
 }
