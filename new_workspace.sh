@@ -124,7 +124,7 @@ function main() {
         if [ "$remote_file" == '' ]; then
             remote_file=${task_info["remote_file"]}
         fi
-        task_branch=${task_info["task_branch"]}
+        task_branch=${task_info["task_br"]}
         projects=(${task_projects[*]})
     fi
     if [ "$work_dir" == '' ]; then

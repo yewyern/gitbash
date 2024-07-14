@@ -3,8 +3,8 @@
 
 
 # 获取分支
-# 任务分支获取使用：task_info["task_branch"]
-# 环境分支获取使用：task_info[$env"_branch"]
+# 任务分支获取使用：task_info["task_br"]
+# 环境分支获取使用：task_info[$env"_br"]
 # 或者 根据项目从环境分支文件中获取: `get_value_by_key "$branch_env_file" "$project" 0 1`
 # get_branch_extend [env [project]]
 function get_branch_extend() {

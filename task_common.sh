@@ -250,8 +250,8 @@ function get_branch() {
 }
 
 # 通用获取分支的犯法
-# 任务分支获取使用：task_info["task_branch"]
-# 环境分支获取使用：task_info[$env"_branch"]
+# 任务分支获取使用：task_info["task_br"]
+# 环境分支获取使用：task_info[$env"_br"]
 # 或者 根据项目从环境分支文件中获取: `get_value_by_key "$branch_env_file" "$project" 0 1`
 # do_get_branch [env [project]]
 function do_get_branch() {
@@ -260,7 +260,7 @@ function do_get_branch() {
     if [ "$env" != '' ]; then
         # 取环境分支
         # 1、优先从任务配置中获取
-        res_br=${task_info[$env"_branch"]}
+        res_br=${task_info[$env"_br"]}
         if [ "$res_br" != '' ]; then
             echo $res_br
             return $SUCCESS
@@ -287,7 +287,7 @@ function do_get_branch() {
         echo ""
         return $SUCCESS
     fi
-    echo ${task_info["task_branch"]}
+    echo ${task_info["task_br"]}
     return $SUCCESS
 }
 

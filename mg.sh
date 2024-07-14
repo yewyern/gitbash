@@ -44,7 +44,7 @@ function merge_branch_with_project() {
 
 function batch_merge_branch() {
     work_dir=${task_info["work_dir"]}
-    task_branch=${task_info["task_branch"]}
+    task_branch=${task_info["task_br"]}
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}

@@ -82,9 +82,9 @@ fi
 | id              | 任务id       | 必填项，自动递增生成，倒序排列                                              |
 | task_name       | 任务名        | 必填项                                                          |
 | work_dir        | 工作空间路径     | 必填项                                                          |
-| task_branch     | 任务分支       | 必填项                                                          |
+| task_br         | 任务分支       | 必填项                                                          |
 | projects        | 项目列表       | 必填项                                                          |
-| ${env}_branch   | 指定环境分支     | 额外扩展列                                                        |
+| ${env}_br       | 指定环境分支     | 额外扩展列                                                        |
 | br_file_env_pre | 环境分支配置文件前缀 | 额外扩展列，例如：此项配置为 branch_my ，则查找dev环境的分支会从 branch_my_dev.txt中查找 |
 | remote_file     | 远程文件配置     | 额外扩展列                                                        |
 | deleted_flag    | 删除标识       | 必须放在在最后，不需要展示列名                                              |
