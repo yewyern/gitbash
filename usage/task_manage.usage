@@ -1,10 +1,11 @@
 Usage: task_manage.sh <command> [<args>]
 The task manage commands:
-    add                         add task
-    update <task_id>            update task
-    show                        show all tasks(exclude deleted)
-    show <task_id>              show the task by id
-    del  <task_id>              delete the task by id
+    add                         添加任务                           add task
+    update <task_id>            修改任务                           update task
+    show                        展示所有任务                        show all tasks(exclude deleted)
+    show <task_id>              根据任务id展示任务                   show the task by id
+    del  <task_id>              逻辑删除任务                        delete the task by id(mark with deleted
+    clear                       清空被逻辑删除的任务, 并重新生成任务id  remove all task with deleted mark and reindex
 
 common options:
     [-h] show helps

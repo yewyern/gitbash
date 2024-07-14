@@ -3,7 +3,7 @@
 #
 # 使用当前目录的remote.txt，根据指定的项目列表，拉取所有指定的项目，已存在的不拉取
 # @author: 徐宙
-# @date: 2020-12-08
+# @date: 2023-04-15
 
 # 获取脚本的全路径
 script_path="$(realpath $0)"
@@ -24,18 +24,31 @@ function usage() {
     cat "$bash_dir/usage/new_workspace.usage"
 }
 
-function switch_branch_with_project() {
+function switch_or_create_branch_with_project() {
     project_dir=$1
     target_br=$2
     # 打开文件夹
     cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-    # 切换分支
+
+    branch_type=$(git_branch_type "$target_br")
+    # 如果分支存在，直接切换分支
+    if [[ $branch_type != 0 ]]; then
+        # 切换分支
+        if [ $flag == 1 ]; then
+            git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
+        else
+            git_switch_branch $target_br --fetch_before --pull_after --stash prompt
+        fi
+        return $SUCCESS
+    fi
+    # 分支不存在，从master创建分支
+    error_log "分支不存在：$target_br，需要进行创建"
     if [ $flag == 1 ]; then
-        git_switch_branch $target_br -y --fetch_before --pull_after --stash prompt
+        git_create_branch master $target_br -y
     else
-        git_switch_branch $target_br --fetch_before --pull_after --stash prompt
+        git_create_branch master $target_br
     fi
 }
 
@@ -75,7 +88,7 @@ function new_workspace() {
         project=${projects[$i]}
         success_log "当前项目："$project
         add_project $project
-        [[ $? == $SUCCESS && "$task_branch" != '' ]] && switch_branch_with_project "$work_dir/$project" "$task_branch"
+        [[ $? == $SUCCESS && "$task_branch" != '' ]] && switch_or_create_branch_with_project "$work_dir/$project" "$task_branch"
         success_log "-----------------------"
         success_log
     done
@@ -88,34 +101,13 @@ function main() {
     eval set -- "$params"
     while true; do
         case "$1" in
-        -h)
-            usage
-            exit 0
-            ;;
-        -y)
-            flag=1
-            shift
-            ;;
-        -n)
-            task_mode=0
-            shift
-            ;;
-        -r | --remote-file)
-            remote_file=$2
-            shift 2
-            ;;
-        -w | --work-dir)
-            work_dir=$2
-            shift 2
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            usage
-            exit 1
-            ;;
+            -h) usage; exit 0 ;;
+            -y) flag=1; shift ;;
+            -n) task_mode=0; shift ;;
+            -r | --remote-file) remote_file=$2; shift 2 ;;
+            -w | --work-dir) work_dir=$2; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
         esac
     done
 
@@ -143,23 +135,18 @@ function main() {
     if [ "$remote_file" == '' ]; then
         remote_file="remote.txt"
     fi
-    if [ ! -f "$remote_file" ]; then
-        # 如果找不到配置文件，在脚本路径下寻找
-        if [ ! -f "$bash_dir/config/$remote_file" ]; then
-            # 还找不到，报错
-            error_log "未找到对应的远程配置文件：$remote_file"
-            usage
-            exit 1
-        fi
-        remote_file="$bash_dir/config/$remote_file"
-    fi
 
-    remote_file=`realpath "$remote_file"`
     work_dir=`realpath "$work_dir"`
+    remote_file=`get_real_config_path "$remote_file" "$work_dir"`
+    if [ $? == $FAILED ]; then
+        # 获取远程配置异常，退出
+        error_log $remote_file
+        exit 1
+    fi
 
     if [ $task_mode != 1 ]; then
         # 非任务模式
-        projects=($(get_value_by_index $remote_file 0))
+        projects=($(get_value_by_index "$remote_file" 0))
     fi
 
     new_workspace

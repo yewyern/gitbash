@@ -16,6 +16,8 @@ source "$bash_dir/task_common.sh"
 flag=0
 from_branch=master
 new_branch=
+from_env=
+env=
 projects=()
 
 function usage() {
@@ -42,7 +44,25 @@ function batch_new_branch() {
     for i in "${!projects[@]}";
     do
         project=${projects[$i]}
-        new_branch_with_project $work_dir"/"$project $from_branch $new_branch
+        real_from_branch=$from_branch
+        if [[ "$real_from_branch" == '' ]]; then
+            real_from_branch=`get_branch $from_env $project`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，跳过
+                error_log $real_from_branch
+                continue
+            fi
+        fi
+        real_new_branch=$new_branch
+        if [[ "$real_new_branch" == '' ]]; then
+            real_new_branch=`get_branch $env $project`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，跳过
+                error_log $real_new_branch
+                continue
+            fi
+        fi
+        new_branch_with_project $work_dir"/"$project $from_branch $real_new_branch
         success_log "-----------------------"
         success_log
     done
@@ -50,14 +70,15 @@ function batch_new_branch() {
 
 function main() {
     # 解析参数
-    params=`getopt -o hye:f:b: --long from-branch: -n "$0" -- "$@"`
+    params=`getopt -o hye:E:f:b: --long from-env:,from-branch: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
     eval set -- "$params"
     while true ; do
         case "$1" in
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
-            -e) env=$2; branch_env_file=$bash_dir"/config/branch_"$env".txt"; shift 2 ;;
+            -e) env=$2; shift 2 ;;
+            -E | --from-env) from_env=$2; shift 2 ;;
             -f | --from-branch) from_branch=$2; shift 2 ;;
             -b) new_branch=$2; shift 2 ;;
             --) shift; break ;;
@@ -73,8 +94,23 @@ function main() {
     get_task $1
     projects=(${task_projects[*]})
     work_dir=${task_info["work_dir"]}
-    if [ "$new_branch" == "" ]; then
-        new_branch=${task_info["task_branch"]}
+    # 获取任务级别新分支
+    if [[ "$new_branch" == '' ]]; then
+        new_branch=`get_branch $env`
+        if [ $? == $FAILED ]; then
+            # 获取分支有异常，推出
+            error_log $new_branch
+            exit 1
+        fi
+    fi
+    # 获取任务级别源分支
+    if [[ "$from_branch" == '' ]]; then
+        from_branch=`get_branch $from_env`
+        if [ $? == $FAILED ]; then
+            # 获取分支有异常，推出
+            error_log $from_branch
+            exit 1
+        fi
     fi
     # 批量创建分支
     batch_new_branch

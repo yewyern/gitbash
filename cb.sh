@@ -17,7 +17,6 @@ source "$bash_dir/task_common.sh"
 flag=0
 task_branch=
 env=
-branch_env_file=
 work_dir=
 
 function usage() {
@@ -47,14 +46,16 @@ function batch_switch_branch() {
     for i in "${!task_projects[@]}";
     do
         project=${task_projects[$i]}
-        if [[ $task_branch == '' ]]; then
-            if [ "$env" != '' ]; then
-                task_branch=`get_value_by_key "$branch_env_file" "$project" 0 1`
-            else
-                task_branch=${task_info["task_branch"]}
+        real_task_branch=$task_branch
+        if [[ "$real_task_branch" == '' ]]; then
+            real_task_branch=`get_branch $env $project`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，跳过
+                error_log $real_task_branch
+                continue
             fi
         fi
-        switch_branch_with_project $work_dir"/"$project $task_branch
+        switch_branch_with_project $work_dir"/"$project $real_task_branch
         success_log "-----------------------"
         success_log
     done
@@ -70,7 +71,7 @@ function main() {
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
             -b) task_branch=$2; shift 2 ;;
-            -e) env=$2; branch_env_file="$bash_dir/config/branch_$env.txt"; shift 2 ;;
+            -e) env=$2; shift 2 ;;
             -w | --work-dir) work_dir=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
@@ -82,6 +83,15 @@ function main() {
         exit 1
     else
         get_task $1
+        # 获取任务级别新分支
+        if [[ "$task_branch" == '' ]]; then
+            task_branch=`get_branch $env`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，推出
+                error_log $task_branch
+                exit 1
+            fi
+        fi
         batch_switch_branch
         exit 0
     fi
