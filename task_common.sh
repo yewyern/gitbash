@@ -296,9 +296,9 @@ function do_get_branch() {
 function get_branch_env_file() {
     branch_env_file="branch_"$env".txt"
     # 如果任务级别修改了环境分支前缀
-    env_branch_prefix=${task_info["env_branch_prefix"]}
-    if [ "$env_branch_prefix" != '' ]; then
-        branch_env_file=$env_branch_prefix"_"$env".txt"
+    branch_env_file_prefix=${task_info["br_file_env_pre"]}
+    if [ "$branch_env_file_prefix" != '' ]; then
+        branch_env_file=$branch_env_file_prefix"_"$env".txt"
     fi
     # 通用环境分支文件配置
     branch_env_file=`get_real_config_path $branch_env_file`
