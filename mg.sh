@@ -16,11 +16,9 @@ source "$bash_dir/task_common.sh"
 flag=0
 task_branch=
 env=
-branch_env_file=
+from_env=
 from_branch=
 to_branch=
-from_env=
-branch_from_env_file=
 
 function usage() {
     cat "$bash_dir/usage/mg.usage"
@@ -52,26 +50,20 @@ function batch_merge_branch() {
         project=${task_projects[$i]}
         from_br=$from_branch
         to_br=$to_branch
-        if [ "$to_br" == '' ]; then
-            if [ "$env" == 'dev' ]; then
-                to_br=${task_info["release_branch"]}"."$username
-            elif [ "$env" == 'release' ]; then
-                to_br=${task_info["release_branch"]}
-            elif [ "$env" != '' ]; then
-                to_br=`get_value_by_key "$branch_env_file" "$project" 0 1`
-            else
-                to_br=$task_branch
+        if [[ "$from_br" == '' ]]; then
+            $from_br=`get_branch $from_env $project`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，跳过
+                error_log $real_from_branch
+                continue
             fi
         fi
-        if [ "$from_br" == '' ]; then
-            if [ "$from_env" == 'dev' ]; then
-                from_br=${task_info["release_branch"]}"."$username
-            elif [ "$from_env" == 'release' ]; then
-                from_br=${task_info["release_branch"]}
-            elif [ "$from_env" != '' ]; then
-                from_br=`get_value_by_key "$branch_from_env_file" "$project" 0 1`
-            else
-                from_br=$task_branch
+        if [[ "$to_br" == '' ]]; then
+            to_br=`get_branch $env $project`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，跳过
+                error_log $to_br
+                continue
             fi
         fi
         merge_branch_with_project $work_dir"/"$project $from_br $to_br
@@ -87,10 +79,10 @@ function main() {
         case "$1" in
             -h) usage; exit 0 ;;
             -y) flag=1; shift ;;
-            -e) env=$2; branch_env_file=$bash_dir"/config/branch_"$env".txt"; shift 2 ;;
-            -f | --from-branch) from_branch=$2; shift 2 ;;
+            -e) env=$2; shift 2 ;;
+            -E | --from-env) from_env=$2; shift 2 ;;
+            -f | --from-branch) to_branch=$2; shift 2 ;;
             -t | --to-branch) to_branch=$2; shift 2 ;;
-            -E | --from-env) from_env=$2; branch_from_env_file=$bash_dir"/config/branch_"$from_env".txt"; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac
@@ -101,6 +93,24 @@ function main() {
         exit 1
     else
         get_task $1
+        # 获取任务级别目标分支
+        if [[ "$to_branch" == '' ]]; then
+            to_branch=`get_branch $env`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，推出
+                error_log $to_branch
+                exit 1
+            fi
+        fi
+        # 获取任务级别源分支
+        if [[ "$from_branch" == '' ]]; then
+            from_branch=`get_branch $from_env`
+            if [ $? == $FAILED ]; then
+                # 获取分支有异常，推出
+                error_log $from_branch
+                exit 1
+            fi
+        fi
         batch_merge_branch
         exit 0
     fi

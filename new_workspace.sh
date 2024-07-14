@@ -137,7 +137,7 @@ function main() {
     fi
 
     work_dir=`realpath "$work_dir"`
-    remote_file=`get_real_config_path $remote_file $work_dir`
+    remote_file=`get_real_config_path "$remote_file" "$work_dir"`
     if [ $? == $FAILED ]; then
         # 获取远程配置异常，退出
         error_log $remote_file
@@ -146,7 +146,7 @@ function main() {
 
     if [ $task_mode != 1 ]; then
         # 非任务模式
-        projects=($(get_value_by_index $remote_file 0))
+        projects=($(get_value_by_index "$remote_file" 0))
     fi
 
     new_workspace

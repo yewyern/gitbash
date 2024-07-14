@@ -17,6 +17,9 @@ git脚本
 | batch_delete_branch.sh | db   | 批量删除分支脚本          |
 | batch_del.sh           | bd   | 批量删除脚本            |
 
+大部分命令直接输入或添加-h参数会显示帮助文档，尚未添加帮助文档的后续会继续补充，示例如下
+![0_usage.png](imgs/0_usage.png)
+
 ## 2. 环境配置
 
 ### 2.1 Windows git配置
@@ -67,9 +70,9 @@ fi
 
 ## 3. 常用脚本使用
 
-### 3.1 添加任务（gitbash/config/task.txt）
+### 3.1 添加任务
 
-> 1.直接修改文件内容
+> 1.直接修改文件内容(gitbash/config/task.txt)
 
 ![5_task_config.png](imgs/5_task_config.png)
 
@@ -98,6 +101,67 @@ nwo 4
 ### 3.3 批量创建分支
 
 ```bash
-# 
+# 创建dev环境对应的分支
 nb 4 -e dev
 ```
+![11_new_branch_with_env.png](imgs/11_new_branch_with_env.png)
+
+```bash
+# 指定创建对应的分支
+nb 4 -b 1.0.1
+```
+![12_new_branch.png](imgs/12_new_branch.png)
+
+### 3.4 批量切换分支
+
+```bash
+# 批量切换任务分支
+cby 4 # 等效于 `cb 4 -y`
+```
+![13_switch_branch.png](imgs/13_switch_branch.png)
+
+### 3.5 批量合并分支
+
+```bash
+# 无冲突自动合并提交
+mg 4 -e dev
+```
+![14_merge_1.png](imgs/14_merge_1.png)
+![14_merge_2.png](imgs/14_merge_2.png)
+
+```bash
+# 有冲突合并后再提交
+mg 4 -e dev
+```
+![14_merge_3.png](imgs/14_merge_3.png)
+
+在ide中解决代码冲突后，回到gitbash继续提交
+
+![14_merge_4.png](imgs/14_merge_4.png)
+![14_merge_5.png](imgs/14_merge_5.png)
+![14_merge_6.png](imgs/14_merge_6.png)
+
+### 3.6 批量删除分支
+
+```bash
+db -y 4
+```
+
+![15_delete_branch.png](imgs/15_delete_branch.png)
+
+
+### 3.7 删除任务
+
+```bash
+# 删除任务4，逻辑删除，记录会保留
+task del 4
+```
+![16_task_del.png](imgs/16_task_del.png)
+
+### 3.8 清除已删除任务
+
+```bash
+# 清除已删除任务，重置任务id
+task clear
+```
+![17_task_clear.png](imgs/17_task_clear.png)
