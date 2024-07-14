@@ -27,7 +27,7 @@ function main() {
     shift 1
 
     if [ 'show' == $command ]; then
-        list_task "$@"
+        list_task "$@" | column -t -s $'|'
     elif [ 'add' == $command ]; then
         add_task "$@"
         if [ $? == 1 ]; then
@@ -40,6 +40,11 @@ function main() {
         fi
     elif [ 'del' == $command ]; then
         del_task "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
+    elif [ 'clear' == $command ]; then
+        task_clear "$@"
         if [ $? == 1 ]; then
             usage
         fi

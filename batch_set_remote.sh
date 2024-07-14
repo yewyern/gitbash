@@ -106,20 +106,16 @@ function main() {
     if [ "$remote_file" == '' ]; then
         remote_file="remote.txt"
     fi
-    if [ ! -f "$remote_file" ]; then
-        # 如果找不到配置文件，在脚本路径下寻找
-        if [ ! -f "$bash_dir/config/$remote_file" ]; then
-            # 还找不到，报错
-            error_log "未找到对应的远程配置文件：$remote_file"
-            usage
-            exit 1
-        fi
-        remote_file="$bash_dir/config/$remote_file"
+    remote_file=`get_real_config_path "$remote_file" "$work_dir"`
+    if [ $? == $FAILED ]; then
+        # 获取远程配置异常，退出
+        error_log $remote_file
+        exit 1
     fi
 
     remote_file=`realpath "$remote_file"`
     work_dir=`realpath "$work_dir"`
-    projects=($(get_value_by_index $remote_file 0))
+    projects=($(get_value_by_index "$remote_file" 0))
 
     batch_set_remote
     exit 0

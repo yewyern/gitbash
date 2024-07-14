@@ -318,7 +318,15 @@ function git_merge_branch() {
     git_status_ok
     if [ $? == $FAILED ]; then
         error_log "合并$project分支$merge_source_branch到$merge_target_branch，存在冲突"
-        return 0
+        get_continue "是否已完成合并？(y/n)"
+        if [ $? == $FAILED ]; then
+            return $SUCCESS
+        fi
+        get_continue "是否需要提交？(y/n)"
+        if [ $? == $SUCCESS ]; then
+            # 提交合并结果
+            git commit
+        fi
     fi
     success_log "合并$project分支$merge_source_branch到$merge_target_branch成功"
     # 推送到远程
@@ -326,8 +334,7 @@ function git_merge_branch() {
     return $?
 }
 
-
-# 合并分支
+# 创建分支
 # git_create_branch <create_source_branch> <create_target_branch> [-y]
 function git_create_branch() {
     # 解析参数
@@ -401,11 +408,10 @@ function git_create_branch() {
         # 不存在远程url，不推送
         return $SUCCESS
     fi
-    if [[ $create_prompt == 1 ]]; then
-        get_continue "是否推送远程？(y/n)"
-        if [ $? == $FAILED ]; then
-            return $SUCCESS
-        fi
+    # 推送远程强制确认
+    get_continue "是否推送远程？(y/n)"
+    if [ $? == $FAILED ]; then
+        return $SUCCESS
     fi
     # 推送到远程
     git push --set-upstream origin "$curr_branch"
@@ -414,5 +420,78 @@ function git_create_branch() {
         return $SUCCESS
     fi
     error_log "推送分支 $curr_branch 到远程失败"
+    return $FAILED
+}
+
+
+# 合并分支
+# git_delete_branch <to_delete_branch> [-y]
+function git_delete_branch() {
+    # 解析参数
+    params=`getopt -o yYp -n "$0" -- "$@"`
+    [ $? != 0 ] && return $FAILED
+    eval set -- "$params"
+    delete_prompt=1
+    while true ; do
+        case "$1" in
+            -y|-Y) delete_prompt=0; shift ;;
+            --) shift; break ;;
+            *) return $FAILED ;;
+        esac
+    done
+
+    to_delete_branch=$1
+    success_log "待删除分支：$to_delete_branch"
+    # 分支为空，不删除
+    if [[ -z "$to_delete_branch" ]]; then
+        error_log "** 待删除分支为空，不删除"
+        return $FAILED
+    fi
+
+    # 如果分支不存在，不创建
+    branch_type=$(git_branch_type "$to_delete_branch")
+    if [[ $branch_type == 0 ]]; then
+        success_log "分支不存在，不需要删除"
+        return $SUCCESS
+    fi
+
+    # 提示是否删除
+    if [[ $delete_prompt == 1 ]]; then
+        get_continue "是否进行删除？(y/n)"
+        if [ $? == $FAILED ]; then
+            return $SUCCESS
+        fi
+    fi
+
+    # 如果当前分支是待删除分支，先切换到master分支
+    if [ "$(git_current_branch)" == "$to_delete_branch" ]; then
+        success_log "当前分支是待删除分支，切换到master分支"
+        # 切换到master分支
+        git_switch_branch master -y
+        if [ $? == $FAILED ]; then
+            return $FAILED
+        fi
+    fi
+
+    # 删除目标分支-本地
+    git branch -D $to_delete_branch
+
+    if [ $branch_type != 2 ]; then
+        # 不存在远程分支，直接返回
+        return $SUCCESS
+    fi
+
+    # 远程分支删除强制确认
+    get_continue "是否删除远程分支？(y/n)"
+    if [ $? == $FAILED ]; then
+        return $SUCCESS
+    fi
+    # 将删除的分支推送到远程仓库
+    git push origin --delete $to_delete_branch
+    if [ $? == 0 ]; then
+        success_log "删除远程分支 $to_delete_branch 成功"
+        return $SUCCESS
+    fi
+    error_log "删除远程分支 $to_delete_branch 失败"
     return $FAILED
 }

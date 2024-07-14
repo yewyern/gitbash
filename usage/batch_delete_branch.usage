@@ -1,0 +1,16 @@
+Usage: batch_delete_branch.sh <task_id> [-h] [-y] [-b <branch>] [-f <from_branch>] [-e <env>]
+                       [--from_branch <from_branch>]
+    -h                  显示帮助文档
+    -y                  直接切换，无需确认
+    -b                  要删除的目标分支，默认使用任务分支
+    -e                  要删除的目标分支对应的环境
+
+    task_id 可以通过 `task_manage.sh show` 查看
+
+example: batch_delete_branch.sh 1
+    批量为task_id为1的所有项目的删除任务开发分支，支持同步删除远程分支
+example: batch_delete_branch.sh 1 -b branch1
+    批量为task_id为1的所有项目的删除branch1分支，支持同步删除远程分支
+example: batch_delete_branch.sh 1 -e dev
+    批量为task_id为1的所有项目的删除dev环境分支，支持同步删除远程分支
+

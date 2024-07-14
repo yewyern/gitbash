@@ -1,5 +1,6 @@
 SUCCESS=0
 FAILED=1
+username="$(whoami)"
 
 function success_log() {
     echo -e "\033[32m $* \033[0m"
@@ -43,21 +44,8 @@ function get_value_by_key() {
     key_index=$3
     value_index=$4
     # grep 出符合条件的多行数据
-    lines=$(grep "$key" $filename | grep -v '^#')
-    # 遍历进行匹配
-    for i in "${!lines[@]}"; do
-        line=${lines[$i]}
-        # 处理换行符
-        line=$(echo $line | tr --delete '\n')
-        line=$(echo $line | tr --delete '\r')
-        # 根据空格或tab分割字符串
-        arr=($line)
-        if [ "${arr[$key_index]}" == "$key" ]; then
-            echo ${arr[$value_index]}
-            return $SUCCESS
-        fi
-    done
-    return $FAILED
+    # 根据key弱匹配 | 去除#开头的注释行 | 根据kv索引取对应列 | 根据key强匹配 | 取第1行 | 取第2列value
+    grep "$key" "$filename" | grep -v '^#' | awk -v n1="$(($key_index+1))" -v n2="$(($value_index+1))" '{print $n1,$n2}' | grep "^$key " | sed -n '1p' | cut -d" " -f2
 }
 
 # get_value_by_index <filename> <value_index>
@@ -70,4 +58,32 @@ function get_value_by_index() {
     lines=(`grep -v '^#' $filename | awk -v N1="$(($value_index + 1))" '{print $N1}'`)
     IFS=$OLD_IFS
     echo "${lines[@]}"
+}
+
+# 获取真实的配置文件路径
+# 优先从当前路径获取，其次从工作空间获取，最后从脚本路径下的config目录下获取
+# get_real_config_path <real_file> [work_dir]
+function get_real_config_path() {
+    real_file=$1
+    work_dir=$2
+    if [ "$work_dir" != '' ]; then
+        work_dir=`realpath $work_dir`
+    fi
+    if [ ! -f "$real_file" ]; then
+        # 如果当前路径找不到，在工作空间路径下寻找
+        if [[ ! -f "$work_dir/$real_file" ]]; then
+            # 如果工作空间路径找不到，在脚本路径下寻找
+            if [ ! -f "$bash_dir/config/$real_file" ]; then
+                # 还找不到，报错
+                error_log "未找到对应的配置文件：$real_file"
+                return $FAILED
+            fi
+            echo "$bash_dir/config/$real_file"
+            return $SUCCESS
+        fi
+        echo "$work_dir/$real_file"
+        return $SUCCESS
+    fi
+    echo `realpath "$remote_file"`
+    return $SUCCESS
 }
