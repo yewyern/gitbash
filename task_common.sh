@@ -268,6 +268,14 @@ function do_get_branch() {
         # 2、根据项目从环境分支文件中获取
         if [ "$project" != '' ]; then
             branch_env_file=`get_branch_env_file $env`
+            if [ $? == $FAILED ]; then
+                if [ "$env" == 'prod' ]; then
+                    echo master
+                    return $SUCCESS
+                fi
+                echo $res_br
+                return $FAILED
+            fi
             res_br=`get_value_by_key "$branch_env_file" "$project" 0 1`
             if [ "$res_br" != '' ]; then
                 echo $res_br
@@ -286,12 +294,18 @@ function do_get_branch() {
 # 获取环境分支文件
 # get_branch_env_file <env>
 function get_branch_env_file() {
+    branch_env_file="branch_"$env".txt"
     # 如果任务级别修改了环境分支前缀
     env_branch_prefix=${task_info["env_branch_prefix"]}
     if [ "$env_branch_prefix" != '' ]; then
-        echo $bash_dir"/config/"$env_branch_prefix"_"$env".txt"
+        branch_env_file=$env_branch_prefix"_"$env".txt"
     fi
     # 通用环境分支文件配置
-    branch_env_file=$bash_dir"/config/branch_"$env".txt"
+    branch_env_file=`get_real_config_path $branch_env_file`
+    if [ $? == $FAILED ]; then
+        echo $branch_env_file
+        return $FAILED
+    fi
     echo $branch_env_file
+    return $SUCCESS
 }

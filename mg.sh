@@ -51,7 +51,7 @@ function batch_merge_branch() {
         from_br=$from_branch
         to_br=$to_branch
         if [[ "$from_br" == '' ]]; then
-            $from_br=`get_branch $from_env $project`
+            from_br=`get_branch $from_env $project`
             if [ $? == $FAILED ]; then
                 # 获取分支有异常，跳过
                 error_log $real_from_branch
