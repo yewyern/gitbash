@@ -62,7 +62,7 @@ function batch_new_branch() {
                 continue
             fi
         fi
-        new_branch_with_project $work_dir"/"$project $from_branch $real_new_branch
+        new_branch_with_project $work_dir"/"$project $real_from_branch $real_new_branch
         success_log "-----------------------"
         success_log
     done

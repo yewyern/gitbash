@@ -54,7 +54,7 @@ function batch_merge_branch() {
             from_br=`get_branch $from_env $project`
             if [ $? == $FAILED ]; then
                 # 获取分支有异常，跳过
-                error_log $real_from_branch
+                error_log $from_br
                 continue
             fi
         fi
@@ -81,7 +81,7 @@ function main() {
             -y) flag=1; shift ;;
             -e) env=$2; shift 2 ;;
             -E | --from-env) from_env=$2; shift 2 ;;
-            -f | --from-branch) to_branch=$2; shift 2 ;;
+            -f | --from-branch) from_branch=$2; shift 2 ;;
             -t | --to-branch) to_branch=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
