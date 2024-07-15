@@ -68,6 +68,16 @@ fi
 
 ![9_branch_env.png](imgs/9_branch_env.png)
 
+### 2.3 脚本extend配置
+
+#### 2.3.1 复制extend_demo文件夹，并命名为extend文件夹
+
+![4_copy_extend.png](imgs/4_copy_extend.png)
+
+#### 2.3.2 任务扩展demo
+
+![4_extend_demo.png](imgs/4_extend_demo.png)
+
 ## 3. 常用脚本使用
 
 ### 3.1 添加任务
