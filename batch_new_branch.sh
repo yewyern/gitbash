@@ -13,6 +13,7 @@ bash_dir="$(dirname $script_path)"
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
 
+task_id=
 flag=0
 from_branch=master
 new_branch=
@@ -49,8 +50,9 @@ function batch_new_branch() {
             real_from_branch=`get_branch $from_env $project`
             if [ $? == $FAILED ]; then
                 # 获取分支有异常，跳过
+                list_task $task_id
                 error_log $real_from_branch
-                continue
+                exit 1
             fi
         fi
         real_new_branch=$new_branch
@@ -58,8 +60,9 @@ function batch_new_branch() {
             real_new_branch=`get_branch $env $project`
             if [ $? == $FAILED ]; then
                 # 获取分支有异常，跳过
+                list_task $task_id
                 error_log $real_new_branch
-                continue
+                exit 1
             fi
         fi
         new_branch_with_project $work_dir"/"$project $real_from_branch $real_new_branch
@@ -90,8 +93,9 @@ function main() {
         usage
         exit 1
     fi
+    task_id=$1
     # 获取任务信息
-    get_task $1
+    get_task $task_id
     projects=(${task_projects[*]})
     work_dir=${task_info["work_dir"]}
     # 获取任务级别新分支
@@ -99,6 +103,7 @@ function main() {
         new_branch=`get_branch $env`
         if [ $? == $FAILED ]; then
             # 获取分支有异常，推出
+            list_task $task_id
             error_log $new_branch
             exit 1
         fi
@@ -108,6 +113,7 @@ function main() {
         from_branch=`get_branch $from_env`
         if [ $? == $FAILED ]; then
             # 获取分支有异常，推出
+            list_task $task_id
             error_log $from_branch
             exit 1
         fi
