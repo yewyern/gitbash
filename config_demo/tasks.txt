@@ -1,4 +1,4 @@
-id | task_name | work_dir | task_branch | projects | dev_branch |
+id | task_name | work_dir | task_br | projects | dev_br |
 3 | xxxx | /c/git | branch3 | project1,project2 | dev |
 2 | yyyy | /c/git | branch2 | project2 | dev | deleted
 1 | zzzz | /c/git | branch1 | project1 | dev |

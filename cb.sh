@@ -52,7 +52,7 @@ function batch_switch_branch() {
             if [ $? == $FAILED ]; then
                 # 获取分支有异常，跳过
                 error_log $real_task_branch
-                continue
+                exit 1
             fi
         fi
         switch_branch_with_project $work_dir"/"$project $real_task_branch
