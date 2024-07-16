@@ -1,6 +1,7 @@
-# gitbash 2.0
+# gitbash 2.1
+### 更新日志（[change-2.1.md](change_log/change-2.1.md)）
 
-## 更新日志查看（change_log）
+# gitbash 2.0
 
 ## 1. 简介
 
