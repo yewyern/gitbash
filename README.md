@@ -16,6 +16,7 @@ git脚本
 | batch_pull             | gpl  | 批量拉取远程代码          |
 | batch_delete_branch.sh | db   | 批量删除分支脚本          |
 | batch_del.sh           | bd   | 批量删除脚本            |
+| batch_exclude.sh       | be   | 批量添加git exclude   |
 
 大部分命令直接输入或添加-h参数会显示帮助文档，尚未添加帮助文档的后续会继续补充，示例如下
 ![0_usage.png](imgs/0_usage.png)
