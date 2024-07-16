@@ -1,5 +1,7 @@
 # gitbash 2.0
 
+## 更新日志查看（change_log）
+
 ## 1. 简介
 
 git脚本
