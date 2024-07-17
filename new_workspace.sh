@@ -12,6 +12,7 @@ bash_dir="$(dirname $script_path)"
 #base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
+source "$bash_dir/config/git.config"
 
 task_mode=1
 flag=0
@@ -65,15 +66,30 @@ function add_project() {
                 return $SUCCESS
             fi
         fi
-        # 目标项目git url
-        remote_url=$(get_value_by_key "$remote_file" "$project" 0 1)
-        if [[ -z "$remote_url" ]]; then
-            error_log "未找到项目远程地址，请确认$remote_file 是否正确！"
-            return $FAILED
+        if [[ $new_workspace_mode == 1 && "$local_repos_dir" == '' ]]; then
+            error_log "新建工作空间模式为1，但未指定本地仓库目录，无法拉取项目！请确认config/git.config文件是否正确！"
+            exit 1
         fi
-        success_log "当前目录：$(pwd)"
-        git clone "$remote_url"
-        return $?
+        if [ $new_workspace_mode == 1 ]; then
+            # 新建工作空间模式为1，从本地仓库拉取项目
+            if [ ! -d "$local_repos_dir/$project" ]; then
+                error_log "未找到本地项目，请确认$local_repos_dir/$project 是否存在！"
+                return $FAILED
+            fi
+            success_log "复制项目：$local_repos_dir/$project"" 到 ""$project_dir"
+            cp -r "$local_repos_dir/$project" "$project_dir"
+            return $?
+        else
+            # 目标项目git url
+            remote_url=$(get_value_by_key "$remote_file" "$project" 0 1)
+            if [[ -z "$remote_url" ]]; then
+                error_log "未找到项目远程地址，请确认$remote_file 是否正确！"
+                return $FAILED
+            fi
+            success_log "当前目录：$(pwd)"
+            git clone "$remote_url"
+            return $?
+        fi
     fi
     success_log "已存在项目，不拉取"
 }
