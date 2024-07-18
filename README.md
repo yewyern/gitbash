@@ -7,19 +7,20 @@
 
 git脚本
 
-| 脚本名                    | 别名   | 功能                |
-|------------------------|------|-------------------|
-| task_manage.sh         | task | 任务管理，管理工作空间，项目，分支 |
-| batch_get_remote.sh    | bgr  | 批量获取远程url脚本       |
-| batch_set_remote.sh    | bsr  | 批量设置远程url脚本       |
-| new_workspace          | nwo  | 新建工作空间            |
-| batch_new_branch.sh    | nb   | 批量创建分支脚本          |
-| cb.sh                  | cb   | 批量切换分支脚本          |
-| mg.sh                  | mg   | 一键合并分支脚本          |
-| batch_pull             | gpl  | 批量拉取远程代码          |
-| batch_delete_branch.sh | db   | 批量删除分支脚本          |
-| batch_del.sh           | bd   | 批量删除脚本            |
-| batch_exclude.sh       | be   | 批量添加git exclude   |
+| 脚本名                          | 别名   | 功能                |
+|------------------------------|------|-------------------|
+| task_manage.sh               | task | 任务管理，管理工作空间，项目，分支 |
+| batch_get_remote.sh          | bgr  | 批量获取远程url脚本       |
+| batch_set_remote.sh          | bsr  | 批量设置远程url脚本       |
+| new_workspace                | nwo  | 新建工作空间            |
+| batch_new_branch.sh          | nb   | 批量创建分支脚本          |
+| cb.sh                        | cb   | 批量切换分支脚本          |
+| mg.sh                        | mg   | 一键合并分支脚本          |
+| batch_pull                   | gpl  | 批量拉取远程代码          |
+| batch_delete_branch.sh       | db   | 批量删除分支脚本          |
+| batch_del.sh                 | bd   | 批量删除脚本            |
+| batch_exclude.sh             | be   | 批量添加git exclude   |
+| batch_clear_merged_branch.sh | bcm  | 批量删除已合并的分支        |
 
 大部分命令直接输入或添加-h参数会显示帮助文档，尚未添加帮助文档的后续会继续补充，示例如下
 ![0_usage.png](imgs/0_usage.png)

@@ -239,7 +239,7 @@ function get_branch() {
         echo $res_br
         return $SUCCESS
     fi
-    # 调用通用获取分支的犯法
+    # 调用通用获取分支的方法
     res_br=`do_get_branch "$@"`
     if [ $? == $FAILED ]; then
         echo $res_br
@@ -249,7 +249,7 @@ function get_branch() {
     return $SUCCESS
 }
 
-# 通用获取分支的犯法
+# 通用获取分支的方法
 # 任务分支获取使用：task_info["task_br"]
 # 环境分支获取使用：task_info[$env"_br"]
 # 或者 根据项目从环境分支文件中获取: `get_value_by_key "$branch_env_file" "$project" 0 1`

@@ -10,6 +10,23 @@ function git_current_branch() {
     return $?
 }
 
+# 查看当前仓库主分支名
+function git_main_branch() {
+    git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'
+    return $?
+}
+
+# 查看已合并到主干的分支
+# git_merged_branch <user> [remote]
+function git_merged_branch() {
+    remote=$2
+    if [ -z "$remote" ]; then
+        remote=$(git remote | head -1)
+    fi
+    git for-each-ref --sort=-committerdate --format='%(refname:short) %(authorname)' --merged | grep "$1" | cut -d" " -f1 | sed 's,^'$remote'/,,' | uniq
+    return $?
+}
+
 # 查看分支类型
 # 0 - 分支不存在
 # 1 - 本地分支，无远程
@@ -185,7 +202,7 @@ function git_switch_branch() {
 
     # 切换前fetch
     if [ $fetch_before == 1 ]; then
-        git fetch
+        git fetch --prune
     fi
 
     branch_type=$(git_branch_type "$switch_target_branch")
@@ -467,11 +484,13 @@ function git_delete_branch() {
     if [ "$(git_current_branch)" == "$to_delete_branch" ]; then
         success_log "当前分支是待删除分支，切换到master分支"
         # 切换到master分支
-        git_switch_branch master -y
+        git_switch_branch master -y --fetch_before
         if [ $? == $FAILED ]; then
             return $FAILED
         fi
     fi
+
+    branch_type=$(git_branch_type "$to_delete_branch")
 
     # 删除目标分支-本地
     git branch -D $to_delete_branch

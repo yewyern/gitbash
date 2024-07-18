@@ -1,0 +1,13 @@
+Usage: batch_clear_merged_branch.sh [task_id] [-h] [-y] [-u <user>]
+    -h                  显示帮助文档
+    -y                  直接切换，无需确认
+    -u                  用户名，用于搜索相关联的分支，不传默认使用当前用户，`git config --get user.name`
+
+    task_id 不传则使用当前路径
+    task_id 可以通过 `task_manage.sh show` 查看
+
+example: batch_clear_merged_branch.sh 1
+    批量为task_id为1的所有项目的删除已合并的分支，支持同步删除远程分支
+example: batch_clear_merged_branch.sh -u xz
+    批量为当前目录下的所有项目的删除xz用户相关的已合并的分支，支持同步删除远程分支
+
