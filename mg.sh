@@ -12,7 +12,9 @@ bash_dir="$(dirname $script_path)"
 base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
+source "$bash_dir/config/git.config"
 
+task_mode=1
 task_id=
 flag=0
 task_branch=
@@ -20,6 +22,8 @@ env=
 from_env=
 from_branch=
 to_branch=
+work_dir=
+projects=()
 
 function usage() {
     cat "$bash_dir/usage/mg.usage"
@@ -75,7 +79,7 @@ function batch_merge_branch() {
 
 function main() {
     # 解析参数
-    params=`getopt -o hye:f:t:E: --long from-branch:,to-branch:,from-env: -n "$0" -- "$@"`
+    params=`getopt -o hye:f:t:E:p:w: --long from-branch:,to-branch:,from-env:,projects:,work-dir: -n "$0" -- "$@"`
     [ $? != 0 ] && exit 1
     eval set -- "$params"
     while true ; do
@@ -86,14 +90,20 @@ function main() {
             -E | --from-env) from_env=$2; shift 2 ;;
             -f | --from-branch) from_branch=$2; shift 2 ;;
             -t | --to-branch) to_branch=$2; shift 2 ;;
+            -p | --projects) projects=($2); shift 2 ;;
+            -w | --work-dir) work_dir=$2; shift 2 ;;
             --) shift; break ;;
             *) usage; exit 1 ;;
         esac
     done
 
     if [ $# -lt 1 ]; then
-        usage
-        exit 1
+        # 非任务模式
+        task_mode=0
+        if [[ "$from_branch" == '' || "$to_branch" == '' || ${!projects[@]} == 0 ]]; then
+            usage
+            exit 1
+        fi
     else
         task_id=$1
         get_task $1
@@ -117,6 +127,9 @@ function main() {
                 exit 1
             fi
         fi
+        work_dir=${task_info["work_dir"]}
+        task_branch=${task_info["task_br"]}
+        projects=(${task_projects[*]})
         batch_merge_branch
         exit 0
     fi

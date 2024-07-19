@@ -23,7 +23,7 @@ function git_merged_branch() {
     if [ -z "$remote" ]; then
         remote=$(git remote | head -1)
     fi
-    git for-each-ref --sort=-committerdate --format='%(refname:short) %(authorname)' --merged | grep "$1" | cut -d" " -f1 | sed 's,^'$remote'/,,' | uniq
+    git for-each-ref --sort=-committerdate --format='%(refname:short) %(authorname)' --merged master | grep "$1" | cut -d" " -f1 | sed 's,^'$remote'/,,' | uniq
     return $?
 }
 
@@ -512,5 +512,51 @@ function git_delete_branch() {
         return $SUCCESS
     fi
     error_log "删除远程分支 $to_delete_branch 失败"
+    return $FAILED
+}
+
+# 提交git merge request
+# git_merge_request <source_branch> <target_branch> <title> <description> [-y]
+function git_merge_request() {
+    # 解析参数
+    params=`getopt -o yY -n "$0" -- "$@"`
+    [ $? != 0 ] && return $FAILED
+    eval set -- "$params"
+    delete_prompt=1
+    while true ; do
+        case "$1" in
+            -y|-Y) delete_prompt=0; shift ;;
+            --) shift; break ;;
+            *) return $FAILED ;;
+        esac
+    done
+    if [ $# -lt 2 ]; then
+        error_log "source_branch 和 target_branch 不能为空"
+        return $FAILED
+    fi
+    source_branch=$1
+    target_branch=$2
+    title=$3
+    description=$4
+    git fetch --prune
+    git_switch_branch $target_branch -y --pull_after
+    if [ $? == $FAILED ]; then
+        return $FAILED
+    fi
+    git_switch_branch $source_branch -y --pull_after
+    # 查看当前分支最后一次提交消息
+    git log -1 --format=%B
+    # 提交merge request
+    git push origin \
+    -o merge_request.create \
+    -o merge_request.reviewer="xxx" \
+    -o merge_request.target="6.11.4" \
+    -o merge_request.title="test" \
+    -o merge_request.description="'<p>test1</p><p>test2</p><p>test3</p>'"
+    if [ $? == 0 ]; then
+        success_log "提交merge request成功"
+        return $SUCCESS
+    fi
+    error_log "提交merge request失败"
     return $FAILED
 }
