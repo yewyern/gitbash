@@ -27,15 +27,11 @@ function pull_with_project() {
     cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-    # 提示是否进行更新
-    if [[ $flag == 0 ]]; then
-        get_continue "是否进行更新？(y/n)"
-        toContinue=$?
-        if [ $toContinue == $FAILED ]; then
-            return $SUCCESS
-        fi
+    if [ $flag == 1 ]; then
+        git_pull -y
+    else
+        git_pull
     fi
-    git_pull
 }
 
 function batch_pull() {
