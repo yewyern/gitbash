@@ -158,10 +158,26 @@ function update_task() {
 }
 
 function list_task() {
+    search_args=
+    # 解析参数
+    params=`getopt -o hys: -n "$0" -- "$@"`
+    [ $? != 0 ] && exit 1
+    eval set -- "$params"
+    while true ; do
+        case "$1" in
+            -h) usage; exit 0 ;;
+            -s) search_args=$2; shift 2 ;;
+            --) shift; break ;;
+            *) usage; exit 1 ;;
+        esac
+    done
     if [ $# -ge 1 ]; then
         # 展示指定的任务
         head -n1 $task_table
         grep "^$1 *|" $task_table | grep -v "deleted"
+    elif [ '' != "$search_args" ]; then
+        head -n1 $task_table
+        grep "$search_args" $task_table | grep -v "deleted"
     else
         # 展示所有的任务(不包含deleted)
         grep -v "deleted" $task_table
@@ -308,4 +324,71 @@ function get_branch_env_file() {
     fi
     echo $branch_env_file
     return $SUCCESS
+}
+
+# 合并任务
+# merge_task <task_id1> <task_id2>
+function merge_task() {
+    # 合并任务
+    if [ $# -lt 2 ]; then
+        error_log "必须要有2个任务才能合并"
+        return $FAILED
+    fi
+    success_log "开始合并任务: $1 $2"
+    # 1、获取任务分支
+    get_task $1
+    declare -A target_task_info
+    # 复制 task_info
+    for key in "${!task_info[@]}" ; do
+        target_task_info["$key"]=${task_info["$key"]}
+        echo "${target_task_info["$key"]}"
+    done
+    # 2、获取目标任务分支
+    get_task $2
+    # 3、合并任务
+    for key in "${!target_task_info[@]}" ; do
+        if [ "$key" != "projects" ]; then
+            # 其他字段合并
+            target_task_info["$key"]=${task_info["$key"]}
+        fi
+    done
+    # 4、更新任务
+    update_task $1 $target_task_info
+    success_log "合并任务完成: $1 $2"
+    return $SUCCESS
+}
+
+# 任务合并
+# task_merge <task_id1> <task_id2>...
+function task_merge() {
+    # 合并任务
+    if [ $# -lt 2 ]; then
+        error_log "至少要有2个任务才能合并"
+        return $FAILED
+    fi
+    task_id1=$1
+    shift
+
+    # 或者，使用shift命令来移动参数并打印
+    while [ "$#" -gt 0 ]; do
+        task_id2=$1
+        shift
+        merge_task $task_id1 $task_id2
+    done
+}
+
+function merge_projects() {
+    # 合并任务
+    if [ $# -lt 2 ]; then
+        error_log "至少要有2个任务才能合并"
+        return $FAILED
+    fi
+    task_id1=$1
+    shift
+    # 或者，使用shift命令来移动参数并打印
+    while [ "$#" -gt 0 ]; do
+        task_id2=$1
+        shift
+        merge_task $task_id1 $task_id2
+    done
 }

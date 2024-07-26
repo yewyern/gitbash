@@ -14,6 +14,7 @@ source "$bash_dir/task_common.sh"
 flag=0
 exclude_content=
 projects=()
+work_dir=$base_dir
 
 function usage() {
     cat "$bash_dir/usage/batch_exclude.usage"
@@ -73,15 +74,15 @@ function main() {
         usage
         exit 1
     fi
-    # 获取任务信息
-    get_task $1
-    exclude_content=$2
-    if [ "$exclude_content" == '' ]; then
-        error_log "exclude内容不能为空"
-        exit 1
+    exclude_content=$1
+    if [ $# -lt 2 ]; then
+        projects=($(get_directories))
+    else
+        # 获取任务信息
+        get_task $2
+        work_dir=${task_info["work_dir"]}
+        projects=(${task_projects[*]})
     fi
-    projects=(${task_projects[*]})
-    work_dir=${task_info["work_dir"]}
     # 批量创建分支
     batch_exclude
     exit 0

@@ -12,3 +12,6 @@ common options:
 
 add command options:
     [-y] [-t <template task id>]
+
+show command options:
+    [-s <search_str>]  指定内容对所有列进行搜索

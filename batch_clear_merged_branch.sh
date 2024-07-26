@@ -30,8 +30,9 @@ function clear_merged_branch_with_project() {
     cd "$project_dir" || exit
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
-    git fetch --prune
-    git_merged_branch $user
+    main_branch=$(git_main_branch)
+    git_switch_branch $main_branch -y --pull_after
+    git_merged_branch $user $main_branch
     merged_branches=($(git_merged_branch $user))
     for merged_branch in "${merged_branches[@]}"; do
         if [[ "$merged_branch" == '' ]]; then

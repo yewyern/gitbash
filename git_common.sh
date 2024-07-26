@@ -17,13 +17,14 @@ function git_main_branch() {
 }
 
 # 查看已合并到主干的分支
-# git_merged_branch <user> [remote]
+# git_merged_branch <user> <main_branch> [remote]
 function git_merged_branch() {
-    remote=$2
+    main_branch=$2
+    remote=$3
     if [ -z "$remote" ]; then
         remote=$(git remote | head -1)
     fi
-    git for-each-ref --sort=-committerdate --format='%(refname:short) %(authorname)' --merged master | grep "$1" | cut -d" " -f1 | sed 's,^'$remote'/,,' | uniq
+    git for-each-ref --sort=-committerdate --format='%(refname:short) %(authorname)' --merged $main_branch | grep "$1" | cut -d" " -f1 | sed 's,^'$remote'/,,' | uniq
     return $?
 }
 
@@ -128,9 +129,9 @@ function git_pull() {
         fi
         # 更新远程分支到本地
         if [ $pull_strategy == 1 ]; then
-            git pull --rebase
+            git pull --rebase --prune
         else
-            git pull
+            git pull --prune
         fi
         if [ $? != $SUCCESS ]; then
             error_log "** 更新远程仓库到本地失败"

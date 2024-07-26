@@ -48,6 +48,11 @@ function main() {
         if [ $? == 1 ]; then
             usage
         fi
+    elif [ 'merge' == $command ]; then
+        task_merge "$@"
+        if [ $? == 1 ]; then
+            usage
+        fi
     fi
 }
 

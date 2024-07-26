@@ -1,10 +1,10 @@
-Usage: batch_exclude.sh <task_id> [exclude_content] [-h] [-y]
+Usage: batch_exclude.sh <exclude_content> [task_id] [-h] [-y]
     -h                  显示帮助文档
     -y                  直接切换，无需确认
 
     task_id 可以通过 `task_manage.sh show` 查看
 
-example: batch_exclude.sh 1 "target/"
+example: batch_exclude.sh "target/" 1
     批量为task_id为1的所有项目的排除掉target目录
 
 
