@@ -17,6 +17,7 @@ flag=0
 env=
 to_del_branch=
 user=
+work_dir=$(pwd)
 projects=()
 
 function usage() {
@@ -27,7 +28,7 @@ function usage() {
 function clear_merged_branch_with_project() {
     project_dir=$1
     # 打开文件夹
-    cd "$project_dir" || exit
+    cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
     main_branch=$(git_main_branch)
@@ -84,8 +85,7 @@ function main() {
         exit 0
     fi
     if [ $# -lt 1 ]; then
-        work_dir=$(pwd)
-        projects=($(get_directories))
+        projects=($(git_directories))
     else
         get_task $1
         work_dir=${task_info["work_dir"]}

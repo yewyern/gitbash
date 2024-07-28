@@ -30,7 +30,7 @@ function new_branch_with_project() {
     from_br=$2
     to_br=$3
     # 打开文件夹
-    cd "$project_dir" || exit
+    cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
     # 创建分支

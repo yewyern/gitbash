@@ -39,7 +39,7 @@ function get_remote_with_project() {
         return $FAILED
     fi
     echo "$remote_url"
-    echo "$project $remote_url" >>"$base_dir/$res_file"
+    echo "$(basename "$project") $remote_url" >>"$base_dir/$res_file"
 }
 
 function batch_get_remote() {
@@ -50,6 +50,9 @@ function batch_get_remote() {
         success_log "-----------------------"
         success_log
     done
+    cat "$base_dir/$res_file" | sort | uniq>"$base_dir/$res_file"
+    success_log $base_dir"/"$res_file"内容如下"
+    cat "$base_dir/$res_file"
 }
 
 function main() {
@@ -66,7 +69,7 @@ function main() {
         esac
     done
 
-    projects=($(get_directories))
+    projects=($(git_directories))
     batch_get_remote
     exit 0
 }

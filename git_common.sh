@@ -3,6 +3,17 @@ script_path="$(realpath $0)"
 # 提取脚本所在的目录
 bash_dir="$(dirname $script_path)"
 source $bash_dir"/util.sh"
+source "$bash_dir/config/git.config"
+
+# 查看当前分支名
+function git_directories() {
+    if [ $find_git_max_depth == '' ]; then
+        find . -maxdepth 2 -name ".git" -type d | awk '{sub("/.git","");print}'
+    else
+        find . -maxdepth $find_git_max_depth -name ".git" -type d | awk '{sub("/.git","");print}'
+    fi
+    return $?
+}
 
 # 查看当前分支名
 function git_current_branch() {

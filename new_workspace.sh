@@ -12,7 +12,6 @@ bash_dir="$(dirname $script_path)"
 #base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
-source "$bash_dir/config/git.config"
 
 task_mode=1
 flag=0

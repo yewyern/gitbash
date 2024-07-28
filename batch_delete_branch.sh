@@ -27,7 +27,7 @@ function delete_branch_with_project() {
     project_dir=$1
     real_to_del_branch=$2
     # 打开文件夹
-    cd "$project_dir" || exit
+    cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
     # 创建分支

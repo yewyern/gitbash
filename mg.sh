@@ -12,7 +12,6 @@ bash_dir="$(dirname $script_path)"
 base_dir=$(pwd)
 source "$bash_dir/git_common.sh"
 source "$bash_dir/task_common.sh"
-source "$bash_dir/config/git.config"
 
 task_mode=1
 task_id=
@@ -34,7 +33,7 @@ function merge_branch_with_project() {
     from_br=$2
     to_br=$3
     # 打开文件夹
-    cd "$project_dir" || exit
+    cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
     # 合并分支

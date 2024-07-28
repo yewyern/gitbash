@@ -59,7 +59,7 @@ function main() {
     done
 
     if [ $# -lt 1 ]; then
-        projects=($(get_directories))
+        projects=($(git_directories))
     else
         get_task $1
         work_dir=${task_info["work_dir"]}

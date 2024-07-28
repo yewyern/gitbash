@@ -25,7 +25,7 @@ function usage() {
 function exclude_with_project() {
     project_dir=$1
     # 打开文件夹
-    cd "$project_dir" || exit
+    cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
     success_log "当前目录：$curr_dir"
     if [ $(grep ^"$exclude_content"$ .git/info/exclude | wc -l) != 0 ]; then
@@ -76,7 +76,7 @@ function main() {
     fi
     exclude_content=$1
     if [ $# -lt 2 ]; then
-        projects=($(get_directories))
+        projects=($(git_directories))
     else
         # 获取任务信息
         get_task $2

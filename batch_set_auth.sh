@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
-# 一键切换分支
+# 批量设置
 # @author: 徐宙
-# @date: 2020-12-08
+# @date: 2024-01-14
 
 function success_log() {
   echo -e "\033[32m $* \033[0m"
@@ -30,7 +30,7 @@ function set_auth_with_project() {
   username=$2
   password=$3
   # 打开文件夹
-  cd "$project_dir" || exit
+  cd "$project_dir" || return $FAILED
   curr_dir=$(pwd)
   success_log "当前目录：$curr_dir"
 
