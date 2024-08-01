@@ -3,7 +3,7 @@
 #
 # 批量删除文件
 # @author: 徐宙
-# @date: 2020-12-08
+# @date: 2021-05-21
 
 function success_log() {
     echo -e "\033[32m $* \033[0m"
@@ -22,7 +22,7 @@ fi
 # 删除文件夹使用下面的命令无法展示出被删除的文件夹，也无法进行确认
 #find . -name "$dirname" -type d | xargs -i rm -r {}
 dirname=$1
-find . -name "$dirname" -type d >batchdel.tmp
+find . -maxdepth 4 -name "$dirname" -type d >batchdel.tmp
 # 遍历文件，每次处理一行
 while read -r line || [[ -n $line ]]; do
     success_log "删除：$line"
