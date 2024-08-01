@@ -7,7 +7,7 @@ source "$bash_dir/config/git.config"
 
 # 查看当前分支名
 function git_directories() {
-    if [ $find_git_max_depth == '' ]; then
+    if [ "$find_git_max_depth" == '' ]; then
         find . -maxdepth 2 -name ".git" -type d | awk '{sub("/.git","");print}'
     else
         find . -maxdepth $find_git_max_depth -name ".git" -type d | awk '{sub("/.git","");print}'
