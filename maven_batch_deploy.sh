@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 #
-# 一键切换分支
+# 批量部署maven
 # @author: 徐宙
-# @date: 2020-12-08
+# @date: 2023-04-21
 
 # 获取脚本的全路径
 script_path="$(realpath $0)"

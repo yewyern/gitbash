@@ -73,6 +73,11 @@ function add_task() {
             task_info["$key"]="$val"
         done
     fi
+    do_add_task
+}
+
+# 基于 task_info 生成任务记录
+function do_add_task() {
     # 生成id
     last_id=`sed -n '2p' $task_table | cut -d '|' -f1 | awk '{print $1}'`
     task_id=$(($last_id+1))
@@ -341,54 +346,62 @@ function merge_task() {
     # 复制 task_info
     for key in "${!task_info[@]}" ; do
         target_task_info["$key"]=${task_info["$key"]}
-        echo "${target_task_info["$key"]}"
     done
     # 2、获取目标任务分支
     get_task $2
     # 3、合并任务
-    for key in "${!target_task_info[@]}" ; do
+    task_headers=($(parse_task_table_headers))
+    task_header_len=${#task_headers[@]}
+    for ((i=1; i<$task_header_len; i++)) do
+        key=${task_headers[$i]}
         if [ "$key" != "projects" ]; then
-            # 其他字段合并
-            target_task_info["$key"]=${task_info["$key"]}
+            # 相同直接合并
+            if [ ${target_task_info["$key"]} == ${task_info["$key"]} ]; then
+                continue
+            fi
+            # 不相同提示合并
+            val=${target_task_info["$key"]}","${task_info["$key"]}
+            success_log "请输入$key($val):"
+            read val1
+            success_log
+            if [ "$val1" != "" ]; then
+                val=$val1
+            fi
+            task_info["$key"]="$val"
         fi
     done
-    # 4、更新任务
-    update_task $1 $target_task_info
-    success_log "合并任务完成: $1 $2"
-    return $SUCCESS
+    # 4、合并项目列表
+    if [ ${target_task_info["projects"]} != ${task_info["projects"]} ]; then
+        val=`echo ${target_task_info["projects"]}","${task_info["projects"]} | tr "," "\n" | sort | uniq | tr '\n' ',' | awk '{gsub(/,+$/,"");print}'`
+        success_log "合并projects:$val"
+        task_info["projects"]="$val"
+    fi
+    # 5、生成合并后的任务
+    do_add_task
+    if [ $? == 0 ]; then
+        success_log "合并任务完成: $1 $2"
+        list_task $task_id
+        return $SUCCESS
+    fi
+    error_log "合并任务失败"
+    return $FAILED
 }
 
-# 任务合并
-# task_merge <task_id1> <task_id2>...
+# 任务合并，目前仅支持2个任务合并
+# task_merge <task_id1> <task_id2>
 function task_merge() {
     # 合并任务
     if [ $# -lt 2 ]; then
         error_log "至少要有2个任务才能合并"
         return $FAILED
     fi
-    task_id1=$1
-    shift
-
-    # 或者，使用shift命令来移动参数并打印
-    while [ "$#" -gt 0 ]; do
-        task_id2=$1
-        shift
-        merge_task $task_id1 $task_id2
-    done
-}
-
-function merge_projects() {
-    # 合并任务
-    if [ $# -lt 2 ]; then
-        error_log "至少要有2个任务才能合并"
-        return $FAILED
-    fi
-    task_id1=$1
-    shift
-    # 或者，使用shift命令来移动参数并打印
-    while [ "$#" -gt 0 ]; do
-        task_id2=$1
-        shift
-        merge_task $task_id1 $task_id2
-    done
+    merge_task $1 $2
+#    task_id1=$1
+#    shift
+#    # 或者，使用shift命令来移动参数并打印
+#    while [ "$#" -gt 0 ]; do
+#        task_id2=$1
+#        shift
+#        merge_task $task_id1 $task_id2
+#    done
 }
