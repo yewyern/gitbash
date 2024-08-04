@@ -47,11 +47,9 @@ function merge_branch_with_project() {
 }
 
 function batch_merge_branch() {
-    work_dir=${task_info["work_dir"]}
-    task_branch=${task_info["task_br"]}
-    for i in "${!task_projects[@]}";
+    for i in "${!projects[@]}";
     do
-        project=${task_projects[$i]}
+        project=${projects[$i]}
         from_br=$from_branch
         to_br=$to_branch
         if [[ "$from_br" == '' ]]; then
@@ -97,12 +95,43 @@ function main() {
     done
 
     if [ $# -lt 1 ]; then
-        # 非任务模式
+        # 非任务模式，可交互执行
         task_mode=0
-        if [[ "$from_branch" == '' || "$to_branch" == '' || ${!projects[@]} == 0 ]]; then
-            usage
-            exit 1
+        if [ "$work_dir" == '' ]; then
+            success_log "请输入工作空间:"
+            read work_dir
+            if [ "$work_dir" == '' ]; then
+                usage
+                exit 0
+            fi
         fi
+        if [ "$from_branch" == '' ]; then
+            success_log "请输入源分支:"
+            read from_branch
+            if [ "$from_branch" == '' ]; then
+                usage
+                exit 0
+            fi
+        fi
+        if [ "$to_branch" == '' ]; then
+            success_log "请输入目标分支:"
+            read to_branch
+            if [ "$to_branch" == '' ]; then
+                usage
+                exit 0
+            fi
+        fi
+        if [ ${#projects[@]} == 0   ]; then
+            success_log "请输入项目列表:"
+            read val
+            if [ "$val" == '' ]; then
+                usage
+                exit 0
+            fi
+            projects=(`echo $val | tr "," "\n"`)
+        fi
+        batch_merge_branch
+        exit 0
     else
         task_id=$1
         get_task $1
