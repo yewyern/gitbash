@@ -380,7 +380,6 @@ function merge_task() {
     do_add_task
     if [ $? == 0 ]; then
         success_log "合并任务完成: $1 $2"
-        list_task $task_id
         return $SUCCESS
     fi
     error_log "合并任务失败"
