@@ -300,8 +300,7 @@ function git_merge_branch() {
 
     merge_source_branch=$1
     merge_target_branch=$2
-    success_log "源分支：$merge_source_branch"
-    success_log "目标分支：$merge_target_branch"
+    error_log "合并分支："$merge_source_branch" --> "$merge_target_branch
     # 分支为空，不合并
     if [[ -z "$merge_source_branch" ]]; then
         success_log "源分支为空，不合并"
@@ -470,7 +469,7 @@ function git_delete_branch() {
     done
 
     to_delete_branch=$1
-    success_log "待删除分支：$to_delete_branch"
+    error_log "待删除分支：$to_delete_branch"
     # 分支为空，不删除
     if [[ -z "$to_delete_branch" ]]; then
         error_log "** 待删除分支为空，不删除"
