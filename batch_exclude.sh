@@ -47,6 +47,7 @@ function exclude_with_project() {
     # 打开文件夹
     cd "$project_dir" || return $FAILED
     curr_dir=$(pwd)
+    success_log "当前目录：$curr_dir"
     if [ "$exclude_content" == '' ]; then
         # 遍历文件，每次处理一行
         for line in `cat "$git_exclude_config_file"`; do
